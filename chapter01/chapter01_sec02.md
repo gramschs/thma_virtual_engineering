@@ -110,18 +110,15 @@ Der Musterdatensatz enthält:
 - **Meshroom-Ergebnis:** die fertige Punktwolke und das Mesh der Kugelbahn
 - **CloudCompare-Projekt:** die bereinigte Punktwolke
 
-**Warum ein Musterdatensatz?**
-
 Photogrammetrie hängt stark von der Aufnahmequalität ab. Glänzende Oberflächen,
 schlechte Beleuchtung oder zu wenige Fotos führen zu unvollständigen oder
-fehlerhaften Modellen. Der Musterdatensatz stellt sicher, dass alle Studierenden,
-unabhängig von der Qualität ihrer eigenen Aufnahmen, mit denselben
-Ausgangsdaten weiterarbeiten können. Er dient als gemeinsame Referenz für alle
-nachfolgenden Schritte.
+fehlerhaften Modellen. Der Musterdatensatz stellt sicher, dass wir unabhängig
+von der Qualität eigenen Aufnahmen, mit denselben Ausgangsdaten weiterarbeiten
+können. Er dient als gemeinsame Referenz für alle nachfolgenden Schritte.
 
 ## Das eigene Objekt: Kriterien und Auswahl
 
-Parallel zum Musterdatensatz fotografieren Sie in Woche 2 ein **eigenes Objekt**.
+Parallel zum Musterdatensatz fotografieren wir in Woche 2 ein *eigenes Objekt*.
 Diese Aufgabe dient dazu, die Herausforderungen der Photogrammetrie selbst zu
 erleben: Nicht jedes Objekt eignet sich gleich gut, und die Aufnahmetechnik hat
 einen großen Einfluss auf das Ergebnis.
@@ -130,18 +127,18 @@ Ein gut geeignetes Objekt für die Photogrammetrie erfüllt folgende Kriterien:
 
 Geeignet:
 
-- Matte, texturierte Oberfläche (z. B. Holz, Beton, raues Kunststoff)
-- Kompakte, handliche Größe (ca. 10-30 cm)
-- Ausreichend viele verschiedene Details und Merkmale
+- matte, texturierte Oberfläche (z. B. Holz, Beton, raues Kunststoff)
+- kompakte, handliche Größe (ca. 10-30 cm)
+- ausreichend viele verschiedene Details und Merkmale
 - Beispiele: eine alte, große Schraube, ein Zahnrad, ein Spielzeugfahrzeug, ein
   Stein
 
 Weniger geeignet:
 
-- Glänzende oder spiegelnde Oberflächen (z. B. poliertes Metall, Glas)
-- Transparente Materialien
-- Sehr gleichförmige, strukturlose Oberflächen (z. B. eine glatte Keramiktasse)
-- Sehr große oder sehr kleine Objekte
+- glänzende oder spiegelnde Oberflächen (z. B. poliertes Metall, Glas)
+- transparente Materialien
+- sehr gleichförmige, strukturlose Oberflächen (z. B. eine glatte Keramiktasse)
+- sehr große oder sehr kleine Objekte
 
 ```{admonition} Mini-Übung
 :class: tip

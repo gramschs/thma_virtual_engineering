@@ -32,29 +32,24 @@ schwierigen Oberflächen.
 Für die Photogrammetrie ist keine Profikamera notwendig. Ein modernes
 Smartphone liefert in den meisten Fällen ausreichende Ergebnisse. Entscheidend
 ist jedoch, dass die Kameraeinstellungen während der gesamten Aufnahmesession
-**konstant** bleiben und die Bilder scharf und gut belichtet sind.
+konstant bleiben und die Bilder scharf und gut belichtet sind.
 
-**Fokus:** Der Autofokus sollte deaktiviert oder auf das Objekt fixiert werden.
-Wenn der Fokus zwischen den Aufnahmen wechselt, verändert sich die scheinbare
-Größe von Merkmalspunkten, was die Zuordnung erschwert. Bei Smartphones lässt
-sich der Fokus in der Regel durch langes Drücken auf das Objekt im Bildschirm
-fixieren.
-
-**Belichtung:** Die automatische Belichtungsanpassung sollte ebenfalls
-deaktiviert werden. Wechselnde Helligkeitswerte von Bild zu Bild erschweren
-die Merkmalszuordnung erheblich. Ziel ist eine gleichmäßige, leicht
-unterbelichtete Aufnahme, da überbelichtete Bereiche keine Texturinformation
-mehr enthalten.
-
-**ISO-Wert:** Ein niedriger ISO-Wert (z. B. ISO 100 bis 400) reduziert das
+* **Fokus**: Der Autofokus sollte deaktiviert oder auf das Objekt fixiert
+werden. Wenn der Fokus zwischen den Aufnahmen wechselt, verändert sich die
+scheinbare Größe von Merkmalspunkten, was die Zuordnung erschwert. Bei
+Smartphones lässt sich der Fokus in der Regel durch langes Drücken auf das
+Objekt im Bildschirm fixieren.
+* **Belichtung**: Die automatische Belichtungsanpassung sollte ebenfalls
+deaktiviert werden. Wechselnde Helligkeitswerte von Bild zu Bild erschweren die
+Merkmalszuordnung erheblich. Ziel ist eine gleichmäßige, leicht unterbelichtete
+Aufnahme, da überbelichtete Bereiche keine Texturinformation mehr enthalten.
+* **ISO-Wert**: Ein niedriger ISO-Wert (ISO 100 bis 400) reduziert das
 Bildrauschen. Rauschen erzeugt zufällige Helligkeitsschwankungen auf der
 Oberfläche, die der Algorithmus fälschlicherweise als Merkmalspunkte
 interpretieren kann.
-
-**Auflösung:** Die höchste verfügbare Auflösung verwenden. Mehr Pixel bedeuten
+* **Auflösung**: Die höchste verfügbare Auflösung verwenden. Mehr Pixel bedeuten
 mehr potenzielle Merkmalspunkte und damit ein detaillierteres Ergebnis.
-
-**Blitz:** Den Blitz ausschalten. Blitzlicht erzeugt harte Schatten und
+* **Blitz**: Den Blitz ausschalten. Blitzlicht erzeugt harte Schatten und
 Reflexionen, die die Oberflächentextur verfälschen.
 
 ```{admonition} Mini-Übung
@@ -84,41 +79,35 @@ wichtig wie die Kameraeinstellungen. Wir folgen einer systematischen
 Strategie, die sicherstellt, dass jede Stelle des Objekts aus mindestens drei
 verschiedenen Winkeln fotografiert wird.
 
-**Überlappung:** Benachbarte Fotos sollten sich zu mindestens **60 bis 80 %**
-überlappen. Zu wenig Überlappung bedeutet, dass der Algorithmus nicht genug
-gemeinsame Merkmalspunkte zwischen benachbarten Fotos findet und die
+* **Überlappung**: Benachbarte Fotos sollten sich zu mindestens 60 bis 80
+Prozent überlappen. Zu wenig Überlappung bedeutet, dass der Algorithmus nicht
+genug gemeinsame Merkmalspunkte zwischen benachbarten Fotos findet und die
 Kamerapositionen nicht korrekt berechnen kann.
-
-**Anzahl der Fotos:** Für ein kompaktes Objekt (ca. 10 bis 30 cm) empfehlen
-wir mindestens **60 bis 80 Fotos**. Mehr Fotos verbessern die Qualität,
-erhöhen aber auch die Rechenzeit.
-
-**Mehrere Ebenen:** Wir fotografieren das Objekt in mindestens zwei
+* **Anzahl der Fotos**: Für ein kompaktes Objekt (ca. 10 bis 30 cm) empfehlen
+wir mindestens 60 bis 80 Fotos. Mehr Fotos verbessern die Qualität, erhöhen aber
+auch die Rechenzeit.
+* **Mehrere Ebenen**: Wir fotografieren das Objekt in mindestens zwei
 horizontalen Ebenen: einmal auf Höhe des Objekts (horizontale Umrundung) und
-einmal von leicht oben (ca. 30 bis 45 Grad). Falls das Objekt eine
-Unterseite hat, wird auch diese aus einer dritten Ebene aufgenommen.
+einmal von leicht oben (ca. 30 bis 45 Grad). Falls das Objekt eine Unterseite
+hat, wird auch diese aus einer dritten Ebene aufgenommen. Eine bewährte
+Aufnahmestrategie für ein kompaktes Objekt sieht so aus:
 
-Eine bewährte Aufnahmestrategie für ein kompaktes Objekt sieht so aus:
+  ```code
+  Ebene 1 (horizontal):  20-25 Fotos, gleichmäßig um das Objekt verteilt
+  Ebene 2 (von oben):    20-25 Fotos, gleichmäßig um das Objekt verteilt
+  Ebene 3 (Nahaufnahmen): 15-20 Fotos von Details, Vertiefungen, Kanten
+  ```
 
-```code
-Ebene 1 (horizontal):  20-25 Fotos, gleichmäßig um das Objekt verteilt
-Ebene 2 (von oben):    20-25 Fotos, gleichmäßig um das Objekt verteilt
-Ebene 3 (Nahaufnahmen): 15-20 Fotos von Details, Vertiefungen, Kanten
-```
-
-**Kamerabewegung:** Wir bewegen immer die Kamera um das Objekt herum, nicht
-das Objekt vor der Kamera. Ein sich drehendes Objekt verändert die
-Beleuchtung und damit die Textur auf der Oberfläche, was die
-Merkmalszuordnung stört.
-
-**Hintergrund:** Das Objekt auf einen neutralen, matten Untergrund stellen,
-z. B. auf ein Stück graues Papier oder ein Handtuch. Ein strukturreicher
+* **Kamerabewegung**: Wir bewegen immer die Kamera um das Objekt herum, nicht
+das Objekt vor der Kamera. Ein sich drehendes Objekt verändert die Beleuchtung
+und damit die Textur auf der Oberfläche, was die Merkmalszuordnung stört.
+* **Hintergrund**: Das Objekt auf einen neutralen, matten Untergrund stellen,
+zum Beispiel auf ein Stück graues Papier oder ein Handtuch. Ein strukturreicher
 Hintergrund kann vom Algorithmus mitrekonstruiert werden und das Ergebnis
 verschlechtern.
-
-**Beleuchtung:** Diffuses Tageslicht oder gleichmäßige Raumbeleuchtung ist
-ideal. Direkte Sonneneinstrahlung erzeugt harte Schatten, die Teile des
-Objekts verdecken und die Rekonstruktion in diesen Bereichen unmöglich machen.
+* **Beleuchtung**: Diffuses Tageslicht oder gleichmäßige Raumbeleuchtung ist
+ideal. Direkte Sonneneinstrahlung erzeugt harte Schatten, die Teile des Objekts
+verdecken und die Rekonstruktion in diesen Bereichen unmöglich machen.
 
 ```{admonition} Mini-Übung
 :class: tip
@@ -152,17 +141,15 @@ Manche Objekte lassen sich mit der oben beschriebenen Strategie nicht
 zufriedenstellend rekonstruieren, weil ihre Oberfläche für die Photogrammetrie
 ungünstig ist. Die häufigsten Problemfälle sind:
 
-**Glänzende Oberflächen:** Poliertes Metall, Glas oder Hochglanzkunststoff
-erzeugen Reflexionen, die sich mit dem Aufnahmewinkel verschieben. Der
-Algorithmus kann diese Reflexionspunkte nicht stabil zuordnen.
-
-**Einfarbige, strukturlose Flächen:** Eine weiß lackierte Metallfläche oder
-eine glatte Keramikoberfläche bietet keine Merkmalspunkte. Der Algorithmus
-findet dort buchstäblich nichts zum Zuordnen.
-
-**Transparente Materialien:** Glas oder Acrylglas lässt Licht hindurch und
-reflektiert es gleichzeitig. Das Erscheinungsbild ist winkelabhängig und für
-Photogrammetrie nahezu unbrauchbar.
+* **Glänzende Oberflächen**: Poliertes Metall, Glas oder Hochglanzkunststoff
+  erzeugen Reflexionen, die sich mit dem Aufnahmewinkel verschieben. Der
+  Algorithmus kann diese Reflexionspunkte nicht stabil zuordnen.
+* **Einfarbige, strukturlose Flächen**: Eine weiß lackierte Metallfläche oder
+  eine glatte Keramikoberfläche bietet keine Merkmalspunkte. Der Algorithmus
+  findet dort buchstäblich nichts zum Zuordnen.
+* **Transparente Materialien**: Glas oder Acrylglas lässt Licht hindurch und
+  reflektiert es gleichzeitig. Das Erscheinungsbild ist winkelabhängig und für
+  Photogrammetrie nahezu unbrauchbar.
 
 Die Lösung in der industriellen Praxis ist **Mattierungsspray** (englisch:
 *scanning spray* oder *developer spray*). Es handelt sich um einen feinen,
@@ -171,41 +158,28 @@ entstehen eine matte, texturierte Oberfläche mit stabilen Merkmalspunkten.
 Nach dem Scan kann das Spray einfach mit Wasser oder einem Tuch entfernt
 werden, ohne das Objekt zu beschädigen.
 
-```{admonition} Hinweis zur Kugelbahn
-:class: warning
-Die Kugelbahn besteht aus glänzendem Kunststoff. Für den Musterdatensatz
-wurde die Kugelbahn vor der Aufnahme mit Mattierungsspray behandelt. Wenn
-Sie ein ähnliches Objekt selbst aufnehmen möchten, empfehlen wir dasselbe
-Vorgehen. Mattierungsspray ist im Baumarkt oder online erhältlich
-(Suchbegriffe: "3D-Scan Spray", "Kreide-Spray", "temporäres Mattierungsspray").
-```
-
 ## Typische Aufnahmefehler
 
 In der Praxis treten beim ersten Versuch häufig dieselben Fehler auf. Die
 folgende Übersicht hilft, diese zu vermeiden:
 
-**Zu wenige Fotos oder zu wenig Überlappung:** Das Modell enthält Lücken oder
-einzelne Bereiche werden gar nicht rekonstruiert. Abhilfe: mehr Fotos
-aufnehmen und kleinere Winkelschritte zwischen den Aufnahmen wählen.
-
-**Bewegtes Objekt:** Wenn das Objekt zwischen den Aufnahmen leicht verschoben
-wird, z. B. weil es auf einer drehbaren Plattform steht, versagen die
-Berechnungen für die Kamerapositionen. Abhilfe: Das Objekt immer fest
-positioniert lassen, die Kamera bewegen.
-
-**Wechselnde Beleuchtung:** Wenn sich das Licht während der Aufnahme ändert,
-z. B. weil eine Wolke die Sonne verdeckt, entstehen Helligkeitssprünge
-zwischen den Fotos. Abhilfe: Drinnen unter gleichmäßiger Beleuchtung
-aufnehmen oder eine kurze, bewölkte Aufnahmesituation wählen.
-
-**Zu glatte oder einfarbige Oberfläche:** Der Algorithmus findet keine
-stabilen Merkmalspunkte. Abhilfe: Mattierungsspray oder das Objekt auf einen
-strukturierten Untergrund legen, der als Referenz dient.
-
-**Zu großer Abstand zur Kamera:** Wenn das Objekt nur einen kleinen Teil des
-Bildes einnimmt, gehen Details verloren. Abhilfe: Nah genug herangehen, so
-dass das Objekt mindestens die Hälfte des Bildes füllt.
+* **Zu wenige Fotos oder zu wenig Überlappung**: Das Modell enthält Lücken oder
+  einzelne Bereiche werden gar nicht rekonstruiert. Abhilfe: mehr Fotos
+  aufnehmen und kleinere Winkelschritte zwischen den Aufnahmen wählen.
+* **Bewegtes Objekt**: Wenn das Objekt zwischen den Aufnahmen leicht verschoben
+  wird, zum Beispiel weil es auf einer drehbaren Plattform steht, versagen die
+  Berechnungen für die Kamerapositionen. Abhilfe: Das Objekt immer fest
+  positioniert lassen, die Kamera bewegen.
+* **Wechselnde Beleuchtung**: Wenn sich das Licht während der Aufnahme ändert,
+  zum Beispiel weil eine Wolke die Sonne verdeckt, entstehen Helligkeitssprünge
+  zwischen den Fotos. Abhilfe: Drinnen unter gleichmäßiger Beleuchtung aufnehmen
+  oder eine kurze, bewölkte Aufnahmesituation wählen.
+* **Zu glatte oder einfarbige Oberfläche**: Der Algorithmus findet keine
+  stabilen Merkmalspunkte. Abhilfe: Mattierungsspray oder das Objekt auf einen
+  strukturierten Untergrund legen, der als Referenz dient.
+* **Zu großer Abstand zur Kamera**: Wenn das Objekt nur einen kleinen Teil des
+  Bildes einnimmt, gehen Details verloren. Abhilfe: Nah genug herangehen, so
+  dass das Objekt mindestens die Hälfte des Bildes füllt.
 
 ## Zusammenfassung und Ausblick
 

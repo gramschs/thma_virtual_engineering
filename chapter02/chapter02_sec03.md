@@ -26,10 +26,10 @@ Rekonstruktionspipeline. Am Ende beurteilen wir das Ergebnis kritisch.
 
 ## Installation
 
-Meshroom ist für **Windows** und **Linux** verfügbar. Die aktuelle Version
+Meshroom ist für Windows und Linux verfügbar. Die aktuelle Version
 kann direkt von der offiziellen GitHub-Seite heruntergeladen werden:
 
-**Download:** [https://github.com/alicevision/Meshroom/releases](https://github.com/alicevision/Meshroom/releases)
+Download: [https://github.com/alicevision/Meshroom/releases](https://github.com/alicevision/Meshroom/releases)
 
 Wir laden das Archiv für unser Betriebssystem herunter (z. B.
 `Meshroom-2025.1.0-win64.zip`), entpacken es in einen Ordner unserer Wahl
@@ -39,19 +39,11 @@ notwendig.
 
 ```{admonition} Hinweis zur GPU
 :class: warning
-Meshroom benötigt für die vollständige Rekonstruktion eine
-**NVIDIA-GPU mit CUDA-Unterstützung**. Ohne eine solche GPU kann nur der
-vereinfachte "Draft Meshing"-Modus verwendet werden, der weniger detaillierte
-Ergebnisse liefert. Falls kein NVIDIA-GPU vorhanden ist, steht der
-Musterdatensatz mit bereits fertig berechneten Ergebnissen zur Verfügung.
-```
-
-```{admonition} Hinweis für macOS-Nutzer
-:class: warning
-Meshroom ist nicht für macOS verfügbar. Bitte den Musterdatensatz verwenden
-und ab diesem Kapitel mit den bereitgestellten Ergebnissen weiterarbeiten.
-Die Benutzeroberfläche und die Pipeline werden im Folgenden beschrieben,
-so dass Sie den Ablauf nachvollziehen können.
+Meshroom benötigt für die vollständige Rekonstruktion eine **NVIDIA-GPU mit
+CUDA-Unterstützung**. Ohne eine solche GPU kann nur der vereinfachte "Draft
+Meshing"-Modus verwendet werden, der weniger detaillierte Ergebnisse liefert.
+Falls Sie Meshroom nicht nutzen können, verwenden Sie alternativ eine
+Smartphone-App.
 ```
 
 ## Die Benutzeroberfläche
@@ -59,26 +51,23 @@ so dass Sie den Ablauf nachvollziehen können.
 Nach dem Start von Meshroom sehen wir eine Oberfläche, die in vier
 Hauptbereiche aufgeteilt ist:
 
-**Image Gallery (oben links):** Hier werden die importierten Fotos angezeigt.
-Meshroom zeigt für jedes Foto an, ob es erfolgreich in die Rekonstruktion
-eingebunden werden konnte.
-
-**Graph Editor (Mitte):** Hier ist die Rekonstruktionspipeline als Knotengraph
-dargestellt. Jeder Knoten entspricht einem Berechnungsschritt, z. B.
-"FeatureExtraction", "FeatureMatching" oder "Meshing". Die Knoten sind durch
-Pfeile verbunden, die den Datenfluss zeigen.
-
-**3D Viewer (rechts):** Hier wird das aktuelle Rekonstruktionsergebnis
-dreidimensional dargestellt. Während die Pipeline läuft, können wir hier
-in Echtzeit beobachten, wie die Punktwolke und das Mesh entstehen.
-
-**Attribute Panel (unten links):** Wenn wir einen Knoten im Graph Editor
-auswählen, werden hier seine Parameter und Einstellungen angezeigt.
+* **Image Gallery (oben links)**: Hier werden die importierten Fotos angezeigt.
+  Meshroom zeigt für jedes Foto an, ob es erfolgreich in die Rekonstruktion
+  eingebunden werden konnte.
+* **Graph Editor (Mitte)**: Hier ist die Rekonstruktionspipeline als Knotengraph
+  dargestellt. Jeder Knoten entspricht einem Berechnungsschritt, zum Beispiel
+  "FeatureExtraction", "FeatureMatching" oder "Meshing". Die Knoten sind durch
+  Pfeile verbunden, die den Datenfluss zeigen.
+* **3D Viewer (rechts)**: Hier wird das aktuelle Rekonstruktionsergebnis
+  dreidimensional dargestellt. Während die Pipeline läuft, können wir hier in
+  Echtzeit beobachten, wie die Punktwolke und das Mesh entstehen.
+* **Attribute Panel (unten links)**: Wenn wir einen Knoten im Graph Editor
+  auswählen, werden hier seine Parameter und Einstellungen angezeigt.
 
 ## Schritt 1: Fotos importieren
 
 Wir starten Meshroom und importieren unsere eigenen Fotos. Dazu ziehen wir
-alle Fotos per Drag-and-Drop in die **Image Gallery** auf der linken Seite.
+alle Fotos per Drag-and-Drop in die Image Gallery auf der linken Seite.
 Alternativ können wir über das Menü `File > Import Images` gehen.
 
 Nach dem Import analysiert Meshroom automatisch die EXIF-Metadaten jedes
@@ -87,13 +76,13 @@ Kalibrierungsparameter. Diese Metadaten sind wichtig für die Berechnung der
 Kamerapositionen. Fotos ohne EXIF-Daten können verwendet werden, liefern aber
 meist schlechtere Ergebnisse.
 
-**Was wir nach dem Import sehen:**
+Was wir nach dem Import sehen:
 Die Image Gallery zeigt alle importierten Fotos als Vorschaubilder. Fotos,
 deren EXIF-Daten erkannt wurden, werden mit einem grünen Haken markiert.
 Fotos ohne erkannte Kameradaten werden mit einem Warnsymbol versehen.
 
 ```{admonition} Tipp
-:class: tip
+:class: hint
 Alle Fotos einer Aufnahmesession in einem eigenen Ordner speichern, bevor
 wir sie in Meshroom importieren. Meshroom legt neben dem Projektordner einen
 Cache-Ordner an, der je nach Rekonstruktionsgröße mehrere Gigabyte groß
@@ -103,7 +92,7 @@ ausreichend freiem Speicherplatz zu speichern.
 
 ## Schritt 2: Pipeline überprüfen
 
-Im **Graph Editor** sehen wir die Standard-Pipeline von Meshroom. Sie besteht
+Im Graph Editor sehen wir die Standard-Pipeline von Meshroom. Sie besteht
 aus einer Reihe von Knoten, die nacheinander ausgeführt werden. Die wichtigsten
 Knoten sind:
 
@@ -123,10 +112,10 @@ Für den ersten Versuch verwenden wir die Standard-Pipeline ohne Änderungen.
 ## Schritt 3: Rekonstruktion starten
 
 Wir starten die vollständige Pipeline durch einen Klick auf den grünen
-**Start-Button** oben in der Werkzeugleiste. Meshroom beginnt nun, alle
+Start-Button oben in der Werkzeugleiste. Meshroom beginnt nun, alle
 Knoten der Pipeline nacheinander zu berechnen.
 
-**Wie lange dauert die Berechnung?**
+*Wie lange dauert die Berechnung?*
 
 Die Rechenzeit hängt stark von der Hardware ab. Als Richtwerte gelten:
 
@@ -136,12 +125,12 @@ Die Rechenzeit hängt stark von der Hardware ab. Als Richtwerte gelten:
 | NVIDIA GPU (älter) | 30-60 Minuten |
 | Ohne GPU (Draft Meshing) | 10-20 Minuten |
 
-Während der Berechnung können wir im **3D Viewer** beobachten, wie nach dem
+Während der Berechnung können wir im 3D Viewer beobachten, wie nach dem
 StructureFromMotion-Schritt die ersten Kamerapositionen und die dünn besetzte
 Punktwolke erscheinen.
 
 ```{admonition} Tipp
-:class: tip
+:class: hint
 Meshroom speichert alle Zwischenergebnisse automatisch im Cache-Ordner. Wenn
 wir die Berechnung unterbrechen und später fortsetzen, werden bereits
 berechnete Schritte nicht wiederholt. Es lohnt sich daher, die Rekonstruktion
@@ -151,22 +140,19 @@ auch über Nacht laufen zu lassen.
 ## Schritt 4: Ergebnis beurteilen
 
 Nachdem die Pipeline abgeschlossen ist, erscheint das fertige Mesh im
-**3D Viewer**. Wir beurteilen das Ergebnis anhand folgender Kriterien:
+3D Viewer. Wir beurteilen das Ergebnis anhand folgender Kriterien:
 
-**Vollständigkeit:** Ist das gesamte Objekt rekonstruiert, oder fehlen
-Bereiche? Fehlende Bereiche entstehen häufig dort, wo zu wenige Fotos
-aufgenommen wurden oder wo die Oberfläche glänzend war.
-
-**Detailgenauigkeit:** Sind feine Details wie Kanten, Verschraubungen oder
-Gravuren erkennbar, oder wirkt die Oberfläche verwaschen?
-
-**Artefakte:** Enthält das Mesh störende Ausreißer, also Punkte oder
-Dreiecke, die nicht zum Objekt gehören? Das passiert häufig im Hintergrund,
-wenn dieser nicht neutral genug war.
-
-**Hintergrundgeometrie:** Hat Meshroom Teile des Hintergrunds oder des
-Untergrunds mitrekonstruiert? Diese müssen in CloudCompare später entfernt
-werden.
+* **Vollständigkeit**: Ist das gesamte Objekt rekonstruiert, oder fehlen
+  Bereiche? Fehlende Bereiche entstehen häufig dort, wo zu wenige Fotos
+  aufgenommen wurden oder wo die Oberfläche glänzend war.
+* **Detailgenauigkeit**: Sind feine Details wie Kanten, Verschraubungen oder
+  Gravuren erkennbar, oder wirkt die Oberfläche verwaschen?
+* **Artefakte**: Enthält das Mesh störende Ausreißer, also Punkte oder Dreiecke,
+  die nicht zum Objekt gehören? Das passiert häufig im Hintergrund, wenn dieser
+  nicht neutral genug war.
+* **Hintergrundgeometrie**: Hat Meshroom Teile des Hintergrunds oder des
+  Untergrunds mitrekonstruiert? Diese müssen in CloudCompare später entfernt
+  werden.
 
 ```{admonition} Mini-Übung
 :class: tip

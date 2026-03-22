@@ -52,8 +52,8 @@ Betrachten Sie den folgenden Workflow des Leitprojekts:
 Fotos aufnehmen → Mesh erzeugen → Mesh bereinigen → drucken → simulieren
 ```
 
-Bei jedem Übergang zwischen zwei Schritten kann es zu **Informationsverlust**
-oder **Fehlern** kommen.
+Bei jedem Übergang zwischen zwei Schritten kann es zu Informationsverlust
+oder Fehlern kommen.
 
 Analysieren Sie jeden der vier Übergänge und beantworten Sie für jeden:
 - Welche Information könnte verloren gehen?
@@ -73,10 +73,8 @@ Notieren Sie Ihre Antworten in einer Tabelle mit den Spalten "Übergang",
 | Bereinigtes Mesh → Druck | Druckauflösung begrenzt Detailgenauigkeit; Materialverhalten unterscheidet sich vom Original | Stützstrukturen hinterlassen Spuren; Verzug durch Abkühlung |
 | Simulation → Vergleich | Reibung, Luftwiderstand und Materialeigenschaften werden vereinfacht modelliert | Abweichung zwischen simulierter und realer Kugelgeschwindigkeit |
 
-Hinweis: Es gibt keine eindeutig richtige Antwort, die Musterlösung enthält
-Beispiele für mögliche Informationsverluste oder Fehlerquellen. Weitere
-Antworten sind denkbar und richtig, wichtig ist nur eine nachvollziehbare
-Begründung.
+Hinweis: Es gibt keine eindeutig richtige Antwort, wichtig ist eine
+nachvollziehbare Begründung.
 ````
 
 ````{admonition} Übung 1.3 (✩✩)
@@ -84,11 +82,11 @@ Begründung.
 Dokumentieren Sie das eigene Objekt, das Sie in Woche 2 fotografieren möchten.
 Erstellen Sie eine kurze **Objektdokumentation** mit folgenden Angaben:
 
-1. Name und Beschreibung des Objekts (2-3 Sätze)
-2. Geschätzte Abmessungen (Länge, Breite, Höhe in cm)
-3. Oberflächeneigenschaften (matt/glänzend, texturiert/glatt, Farbe)
-4. Begründung der Eignung für die Photogrammetrie (3-4 Sätze)
-5. Erwartete Schwierigkeiten bei der Aufnahme (2-3 Sätze)
+1. **Name und Beschreibung** des Objekts (2-3 Sätze)
+2. **Geschätzte Abmessungen** (Länge, Breite, Höhe in cm)
+3. **Oberflächeneigenschaften** (matt/glänzend, texturiert/glatt, Farbe)
+4. **Begründung der Eignung** für die Photogrammetrie (3-4 Sätze)
+5. **Erwartete Schwierigkeiten** bei der Aufnahme (2-3 Sätze)
 
 Machen Sie außerdem ein Foto des Objekts und fügen Sie es Ihrer Dokumentation bei.
 ````
@@ -98,21 +96,21 @@ Machen Sie außerdem ein Foto des Objekts und fügen Sie es Ihrer Dokumentation 
 :class: dropdown
 Beispiellösung für ein Stirnrad aus dem Maschinenbaulabor:
 
-1. Beschreibung: Ein Stirnrad aus Stahl mit geraden Zähnen, wie es in
+1. **Beschreibung:** Ein Stirnrad aus Stahl mit geraden Zähnen, wie es in
    Getrieben eingesetzt wird. Das Bauteil stammt aus dem Maschinenbaulabor und
    ist typisch für industrielle Antriebskomponenten.
 
-2. Abmessungen: Durchmesser ca. 12 cm, Breite ca. 3 cm.
+2. **Abmessungen:** Durchmesser ca. 12 cm, Breite ca. 3 cm.
 
-3. Oberfläche: Überwiegend matt (leicht oxidierte Stahloberfläche), feine
+3. **Oberfläche:** Überwiegend matt (leicht oxidierte Stahloberfläche), feine
    Zahntextur, grau-silberne Farbe.
 
-4. Begründung: Das Stirnrad eignet sich gut, weil es eine ausgeprägte,
+4. **Begründung:** Das Stirnrad eignet sich gut, weil es eine ausgeprägte,
    klar erkennbare Geometrie (Zähne) besitzt, die dem Algorithmus viele
    Merkmalspunkte bietet. Die matte Oberfläche vermeidet Reflexionen. Die
    kompakte Größe erlaubt eine vollständige Umrundung mit der Kamera.
 
-5. Schwierigkeiten: Die Bohrung in der Mitte könnte zu einem Loch im Mesh
+5. **Schwierigkeiten:** Die Bohrung in der Mitte könnte zu einem Loch im Mesh
    führen, da die Kamera dort nicht hineinblicken kann. Außerdem könnten die
    schmalen Zahnspalten nicht vollständig erfasst werden.
 ````
@@ -134,8 +132,8 @@ folgenden Kriterien:
 - Typische Anwendungsfelder in der Industrie
 
 Ziehen Sie abschließend ein Fazit (4-5 Sätze): Wann würden Sie welche Methode
-wählen, und warum ist Photogrammetrie trotz geringerer Genauigkeit eine
-geeignete Wahl?
+wählen, und warum ist Photogrammetrie trotz geringerer Genauigkeit für diese
+Vorlesung die geeignete Wahl?
 ````
 
 ````{admonition} Lösung
@@ -144,7 +142,7 @@ geeignete Wahl?
 | Kriterium | Photogrammetrie | Strukturierter Lichtscanner |
 |-----------|----------------|----------------------------|
 | Messprinzip | Berechnung von 3D-Koordinaten aus überlappenden Fotos (Structure from Motion) | Projektion von Lichtmustern auf das Objekt; Auswertung der Verzerrung per Kamera |
-| Genauigkeit | 0,5-5 mm (abhängig von Kamera und Aufnahme) | 0,02-0,1 mm (Präzisionsmessung) |
+| Genauigkeit | 0.5-5 mm (abhängig von Kamera und Aufnahme) | 0.02-0,1 mm (Präzisionsmessung) |
 | Kosten | Gering (Smartphone oder einfache Kamera + kostenlose Software) | Hoch (10.000-100.000 € für professionelle Systeme) |
 | Glänzende Flächen | Schlecht geeignet; Mattierungsspray als Workaround | Gut geeignet; spezielle Modi für Reflexionen vorhanden |
 | Anwendungsfelder | Architektur, Archäologie, einfaches Reverse Engineering | Qualitätssicherung, Automotive, Luft- und Raumfahrt |
@@ -154,12 +152,16 @@ sind robuster gegenüber schwierigen Oberflächen. Allerdings sind sie mit
 erheblichen Kosten verbunden und in vielen Hochschulen und kleineren Unternehmen
 nicht verfügbar. Photogrammetrie mit einem handelsüblichen Smartphone und der
 kostenlosen Software Meshroom ist dagegen sofort zugänglich und ausreichend
-genau für viele Anwendungen im Reverse Engineering.
+genau für viele Anwendungen im Reverse Engineering. Für diese Vorlesung ist
+Photogrammetrie die geeignete Wahl, weil alle Studierenden mit denselben
+Werkzeugen arbeiten können und die Methode das Verständnis der Grundprinzipien
+der 3D-Erfassung gut vermittelt. Die Grenzen der Methode, etwa bei glänzenden
+Oberflächen, sind dabei selbst ein wertvoller Lerninhalt.
 ````
 
 ````{admonition} Übung 1.5 (Mini-Projekt)
 :class: tip
-Recherchieren Sie ein konkretes **Industriebeispiel**, in dem ein Unternehmen
+Recherchieren Sie ein konkretes Industriebeispiel, in dem ein Unternehmen
 einen Digitalen Zwilling einsetzt. Das Beispiel soll aus dem Maschinenbau oder
 einer verwandten Branche stammen (z. B. Automobilindustrie, Luft- und
 Raumfahrt, Anlagenbau, Energietechnik).
@@ -167,23 +169,22 @@ Raumfahrt, Anlagenbau, Energietechnik).
 Erstellen Sie eine strukturierte Kurzdokumentation (ca. 400-600 Wörter) mit
 folgenden Abschnitten:
 
-1. Unternehmen und Produkt/Anlage: Wer setzt den Digitalen Zwilling ein,
+1. **Unternehmen und Produkt/Anlage:** Wer setzt den Digitalen Zwilling ein,
    und wofür?
-2. Die drei Kernkomponenten: Beschreiben Sie, was das physische Objekt, das
+2. **Die drei Kernkomponenten:** Beschreiben Sie, was das physische Objekt, das
    digitale Modell und die Datenverbindung in diesem konkreten Fall sind.
-3. Nutzen: Welchen konkreten Vorteil bringt der Digitale Zwilling dem
+3. **Nutzen:** Welchen konkreten Vorteil bringt der Digitale Zwilling dem
    Unternehmen? (z. B. Kosteneinsparung, kürzere Entwicklungszeit,
    Predictive Maintenance)
-4. Grenzen: Welche Herausforderungen oder Einschränkungen nennt das
+4. **Grenzen:** Welche Herausforderungen oder Einschränkungen nennt das
    Unternehmen oder die Quelle?
-5. Persönliche Einschätzung: Was finden Sie an diesem Beispiel besonders
+5. **Persönliche Einschätzung:** Was finden Sie an diesem Beispiel besonders
    interessant oder überraschend? (3-4 Sätze)
 
 Anforderungen:
 - Geben Sie Ihre Quellen vollständig an.
 - Verwenden Sie mindestens zwei verschiedene, zitierfähige Quellen
-  (kein Wikipedia als Hauptquelle).
-- Die Dokumentation wird als PDF oder Markdown-Datei abgegeben.
+  (keine Wikipedia als Hauptquelle).
 
 *Optionale Erweiterung:* Vergleichen Sie Ihr Beispiel mit einem zweiten
 Industriebeispiel aus einer anderen Branche. Worin unterscheiden sich die

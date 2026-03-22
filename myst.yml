@@ -19,12 +19,12 @@ project:
         - file: chapter01/chapter01_sec01.md
         - file: chapter01/chapter01_sec02.md
         - file: chapter01/chapter01_sec03.md
-#    - title: 2. Photogrammetrie (von der Kamera zur Punktwolke)
-#      children:
-#        - file: chapter02/chapter02_sec01.md
-#        - file: chapter02/chapter02_sec02.md
-#        - file: chapter02/chapter02_sec03.md
-#        - file: chapter02/chapter02_sec04.md
+    - title: 2. Photogrammetrie (von der Kamera zur Punktwolke)
+      children:
+        - file: chapter02/chapter02_sec01.md
+        - file: chapter02/chapter02_sec02.md
+        - file: chapter02/chapter02_sec03.md
+        - file: chapter02/chapter02_sec04.md
     
 site:
   template: book-theme

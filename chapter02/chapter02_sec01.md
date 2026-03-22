@@ -46,27 +46,27 @@ aufbauende Algorithmen: **Structure from Motion (SfM)** und
 
 ## Structure from Motion (SfM)
 
-Der erste Schritt heißt *Structure from Motion* (SfM), auf Deutsch etwa
+Der erste Schritt heißt **Structure from Motion (SfM)**, auf Deutsch etwa
 "Struktur aus Bewegung". Ziel ist es, aus den Fotos zwei Dinge gleichzeitig
 zu berechnen: die Position der Kamera bei jeder Aufnahme und eine erste grobe
 Punktwolke des Objekts.
 
-**Wie funktioniert das?**
+*Wie funktioniert das?*
 
 SfM arbeitet in mehreren Teilschritten:
 
-**1. Merkmalsextraktion:** Aus jedem Foto werden markante Punkte extrahiert,
-sogenannte *Keypoints* oder Merkmalspunkte. Das sind Stellen im Bild, die sich
-klar von ihrer Umgebung abheben, z. B. Ecken, Kanten oder besondere
-Texturmuster. Der bekannteste Algorithmus dafür heißt SIFT (*Scale-Invariant
-Feature Transform*).
+1. Merkmalsextraktion: Aus jedem Foto werden markante Punkte extrahiert,
+sogenannte **Keypoints** oder Merkmalspunkte. Das sind Stellen im Bild, die sich
+klar von ihrer Umgebung abheben, zum Beispiel Ecken, Kanten oder besondere
+Texturmuster. Der bekannteste Algorithmus dafür heißt SIFT (**Scale-Invariant
+Feature Transform**).
 
-**2. Merkmalszuordnung:** Anschließend sucht der Algorithmus nach denselben
+2. Merkmalszuordnung: Anschließend sucht der Algorithmus nach denselben
 Merkmalspunkten in verschiedenen Fotos. Wenn ein markanter Punkt auf Foto 1
 und auf Foto 3 zu sehen ist, wird er als derselbe Punkt identifiziert und
 zugeordnet.
 
-**3. Kameraposition berechnen:** Aus der Zuordnung gemeinsamer Merkmalspunkte
+3. Kameraposition berechnen: Aus der Zuordnung gemeinsamer Merkmalspunkte
 in mehreren Fotos kann die relative Position und Ausrichtung der Kamera bei
 jeder Aufnahme berechnet werden. Gleichzeitig entstehen die ersten
 dreidimensionalen Koordinaten dieser Merkmalspunkte. Das Ergebnis ist eine
@@ -98,7 +98,7 @@ menschlichen Sehen mit zwei Augen.
 
 Die dünn besetzte Punktwolke aus SfM enthält nur wenige tausend Punkte und
 reicht nicht aus, um ein detailliertes 3D-Modell zu erzeugen. Hier setzt
-*Multi-View Stereo* (MVS) an.
+**Multi-View Stereo (MVS)** an.
 
 MVS nutzt die bekannten Kamerapositionen aus SfM und analysiert die Fotos
 nun deutlich tiefer. Für jeden Bildbereich wird berechnet, wo sich die
@@ -116,7 +116,7 @@ wie diese Punkte miteinander verbunden sind. Um eine geschlossene, druckbare
 oder simulierbare Oberfläche zu erhalten, wird die Punktwolke in ein
 **Mesh** umgewandelt.
 
-Ein Mesh besteht aus **Dreiecken** (englisch: *triangles*), die jeweils drei
+Ein Mesh besteht aus *Dreiecken* (englisch: *triangles*), die jeweils drei
 benachbarte Punkte der Punktwolke verbinden. Die Gesamtheit dieser Dreiecke
 bildet ein zusammenhängendes Dreiecksnetz, das die Oberfläche des Objekts
 beschreibt. Dieser Schritt heißt **Meshing** oder **Polygonisierung**.
@@ -150,18 +150,17 @@ SfM kann nur dann Merkmalspunkte finden und zuordnen, wenn die Oberfläche
 genug visuelle Informationen enthält. Daraus ergeben sich zwei praktische
 Anforderungen an das Aufnahmeobjekt.
 
-**Textur:** Eine strukturlose, einfarbige Fläche, z. B. eine weiße Wand,
-liefert dem Algorithmus kaum Merkmalspunkte. Es gibt nichts Markantes, das
-von einem Foto zum nächsten wiedererkannt werden könnte. Objekte mit
-ausgeprägter Textur, z. B. Holzmaserung, Rost oder Gravuren, liefern dagegen
-viele stabile Merkmalspunkte.
-
-**Mattheit:** Glänzende Oberflächen verändern ihr Erscheinungsbild stark,
-wenn sich der Aufnahmewinkel ändert. Ein Reflexionspunkt, der auf Foto 1 an
-einer bestimmten Stelle sichtbar ist, erscheint auf Foto 2 an einer anderen
-Stelle, weil er von der veränderten Kameraposition anders reflektiert wird.
-Der Algorithmus interpretiert das fälschlicherweise als zwei verschiedene
-Punkte, was zu Fehlern in der Rekonstruktion führt.
+1. **Textur**: Eine strukturlose, einfarbige Fläche, zum Beispiel eine weiße Wand,
+liefert dem Algorithmus kaum Merkmalspunkte. Es gibt nichts Markantes, das von
+einem Foto zum nächsten wiedererkannt werden könnte. Objekte mit ausgeprägter
+Textur, zum Beispiel Holzmaserung, Rost oder Gravuren, liefern dagegen viele
+stabile Merkmalspunkte.
+2. **Mattheit**: Glänzende Oberflächen verändern ihr Erscheinungsbild stark, wenn
+sich der Aufnahmewinkel ändert. Ein Reflexionspunkt, der auf Foto 1 an einer
+bestimmten Stelle sichtbar ist, erscheint auf Foto 2 an einer anderen Stelle,
+weil er von der veränderten Kameraposition anders reflektiert wird. Der
+Algorithmus interpretiert das fälschlicherweise als zwei verschiedene Punkte,
+was zu Fehlern in der Rekonstruktion führt.
 
 Als praktischer Workaround in der Industrie und in der Forschung wird
 **Mattierungsspray** (englisch: *scanning spray*) verwendet. Es legt einen

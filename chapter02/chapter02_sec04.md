@@ -11,7 +11,7 @@ kernelspec:
 Ordnen Sie die folgenden Schritte der Meshroom-Pipeline in die richtige
 Reihenfolge und beschreiben Sie das Ergebnis jedes Schritts in einem Satz.
 
-**Schritte (in falscher Reihenfolge):**
+Schritte (in falscher Reihenfolge):
 - Meshing
 - FeatureExtraction
 - StructureFromMotion
@@ -42,8 +42,8 @@ Richtige Reihenfolge:
 ````{admonition} Übung 2.2 (✩)
 :class: tip
 Gegeben sind folgende Beschreibungen von Aufnahmesituationen. Entscheiden Sie
-für jede, ob sie für die Photogrammetrie **geeignet**, **bedingt geeignet**
-oder **nicht geeignet** ist, und begründen Sie Ihre Entscheidung in einem Satz.
+für jede, ob sie für die Photogrammetrie geeignet, bedingt geeignet
+oder nicht geeignet ist, und begründen Sie Ihre Entscheidung in einem Satz.
 
 1. Ein Zahnrad aus Grauguss, fotografiert bei gleichmäßiger Raumbeleuchtung
    auf einem grauen Tuch.
@@ -58,16 +58,16 @@ oder **nicht geeignet** ist, und begründen Sie Ihre Entscheidung in einem Satz.
 ````{admonition} Lösung
 :class: tip
 :class: dropdown
-1. **Geeignet:** Grauguss ist matt und texturiert, gleichmäßige Beleuchtung
+1. Geeignet: Grauguss ist matt und texturiert, gleichmäßige Beleuchtung
    und neutraler Hintergrund sind ideal.
-2. **Nicht geeignet:** Polierter Edelstahl ist stark reflektierend, direkte
+2. Nicht geeignet: Polierter Edelstahl ist stark reflektierend, direkte
    Sonne erzeugt harte Schatten und wandernde Reflexionen.
-3. **Bedingt geeignet:** Der Schriftzug liefert gute Merkmalspunkte, aber
+3. Bedingt geeignet: Der Schriftzug liefert gute Merkmalspunkte, aber
    glatte Kunststoffflächen ohne Aufdruck können problematisch sein.
    Mattierungsspray kann helfen.
-4. **Nicht geeignet:** Glas ist transparent und reflektierend, der Algorithmus
+4. Nicht geeignet: Glas ist transparent und reflektierend, der Algorithmus
    findet keine stabilen Merkmalspunkte.
-5. **Geeignet:** Ziegelstein hat eine ausgeprägte, matte Textur; konstanter
+5. Geeignet: Ziegelstein hat eine ausgeprägte, matte Textur; konstanter
    ISO-Wert und gleichmäßige Neonbeleuchtung sind gut geeignet.
 ````
 
@@ -90,24 +90,24 @@ beheben würden.
 ````{admonition} Lösung
 :class: tip
 :class: dropdown
-**Unterseite fehlt vollständig:**
+Unterseite fehlt vollständig:
 Ursache: Die Unterseite wurde nicht fotografiert, weil das Bauteil auf einer
 Unterlage lag. Maßnahme: Das Bauteil auf einem dünnen Stab oder einem
 Klebestreifen erhöhen und auch von unten fotografieren, oder das Bauteil
 einmal umdrehen und eine zweite Aufnahmesession durchführen.
 
-**Lücken an zwei Seiten:**
+Lücken an zwei Seiten:
 Ursache: Zu wenige Fotos aus diesen Richtungen oder zu wenig Überlappung.
 Maßnahme: Die Aufnahmestrategie anpassen und in den betroffenen Bereichen mehr
 Fotos mit kleinerem Winkelabstand aufnehmen.
 
-**Flächige Geometrie im Hintergrund:**
-Ursache: Der Hintergrund war zu strukturreich (z. B. Tisch mit Holzmaserung)
+Flächige Geometrie im Hintergrund:
+Ursache: Der Hintergrund war zu strukturreich (zum Beispiel Tisch mit Holzmaserung)
 und wurde vom Algorithmus mitrekonstruiert. Maßnahme: Das Bauteil auf einen
-einfarbigen, strukturlosen Untergrund stellen, z. B. auf ein einfarbiges
+einfarbigen, strukturlosen Untergrund stellen, zum Beispiel auf ein einfarbiges
 Tuch oder Papier.
 
-**Artefakte auf der glänzenden Fläche:**
+Artefakte auf der glänzenden Fläche:
 Ursache: Die glänzende Oberfläche erzeugt wandernde Reflexionen, die der
 Algorithmus nicht stabil zuordnen kann. Maßnahme: Die glänzende Fläche vor
 der Aufnahme mit Mattierungsspray behandeln.
@@ -141,14 +141,14 @@ Ihre Antwort mit mindestens drei Kriterien.
 | Kosten | Gering (Smartphone + kostenlose Software) | Hoch (ab ca. 20.000 bis 200.000 Euro) |
 | Portabilität | Hoch (Smartphone ist immer dabei) | Mittel bis gering (schweres Gerät, oft stationär) |
 
-**Empfehlung:**
+Empfehlung:
 Photogrammetrie empfiehlt sich, wenn ein schnelles, kostengünstiges Ergebnis
 benötigt wird, keine Präzisionsmessung erforderlich ist und keine
-kostenintensive Ausrüstung zur Verfügung steht, z. B. bei der Dokumentation
+kostenintensive Ausrüstung zur Verfügung steht, zum Beispiel bei der Dokumentation
 von Bestandsobjekten, bei einfachem Reverse Engineering oder in der Lehre.
 
 Structured-Light ist die richtige Wahl in der industriellen Qualitätssicherung,
-wenn Toleranzen im Zehntel-Millimeter-Bereich eingehalten werden müssen, z. B.
+wenn Toleranzen im Zehntel-Millimeter-Bereich eingehalten werden müssen, zum Beispiel
 beim Abgleich gefertigter Bauteile mit CAD-Solldaten oder in der Automotive-
 und Luft- und Raumfahrtindustrie.
 ````
@@ -158,18 +158,18 @@ und Luft- und Raumfahrtindustrie.
 Führen Sie eine vollständige Photogrammetrie-Aufnahme Ihres eigenen Objekts
 durch und verarbeiten Sie die Fotos in Meshroom zu einem Mesh.
 
-**Teilaufgaben:**
+Teilaufgaben:
 
-1. **Vorbereitung:** Bereiten Sie das Objekt vor (ggf. mattieren), wählen Sie
+1. Vorbereitung: Bereiten Sie das Objekt vor (ggf. mattieren), wählen Sie
    einen geeigneten Aufnahmeort und prüfen Sie Ihre Kameraeinstellungen.
 
-2. **Aufnahme:** Fotografieren Sie das Objekt nach der Strategie aus Kapitel
+2. Aufnahme: Fotografieren Sie das Objekt nach der Strategie aus Kapitel
    2.2 mit mindestens 60 Fotos in mindestens zwei Ebenen.
 
-3. **Rekonstruktion:** Importieren Sie die Fotos in Meshroom und führen Sie die
+3. Rekonstruktion: Importieren Sie die Fotos in Meshroom und führen Sie die
    vollständige Pipeline aus.
 
-4. **Dokumentation:** Erstellen Sie eine kurze Dokumentation (ca. 300 bis 400
+4. Dokumentation: Erstellen Sie eine kurze Dokumentation (ca. 300 bis 400
    Wörter) mit folgenden Inhalten:
    - Aufnahmebedingungen (Beleuchtung, Hintergrund, Kameraeinstellungen)
    - Anzahl aufgenommener Fotos und Anzahl erfolgreich eingebundener Fotos

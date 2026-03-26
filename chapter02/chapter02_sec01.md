@@ -40,6 +40,20 @@ berechnet unser Gehirn automatisch Tiefe und Entfernung. Die Photogrammetrie
 nutzt dasselbe Prinzip, nur mit vielen Fotos aus vielen verschiedenen Winkeln
 statt mit zwei Augen.
 
+```{dropdown} Video (EN) "Basics of Photogrammetry: Everything You Need to Know!"von GIS Resources
+<iframe width="955" height="537" src="https://www.youtube.com/embed/t-x_9aXr2hM"
+title="Basics of Photogrammetry: Everything You Need to Know!" frameborder="0"
+allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;
+picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"
+allowfullscreen></iframe>
+```
+
+```{dropdown} Video "Photogrammetrie - Grundprinzipien und Anwendung" by OpenScan
+<iframe width="817" height="613" src="https://www.youtube.com/embed/zkGw8EVKMGg" title="Photogrammetrie - Grundprinzipien und Anwendung - Vom Foto zum 3D Modell"
+frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media;
+gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+```
+
 Moderne Photogrammetrie-Software wie Meshroom kombiniert zwei aufeinander
 aufbauende Algorithmen: **Structure from Motion (SfM)** und
 **Multi-View Stereo (MVS)**.
@@ -55,23 +69,23 @@ Punktwolke des Objekts.
 
 SfM arbeitet in mehreren Teilschritten:
 
-1. Merkmalsextraktion: Aus jedem Foto werden markante Punkte extrahiert,
+1. *Merkmalsextraktion*: Aus jedem Foto werden markante Punkte extrahiert,
 sogenannte **Keypoints** oder Merkmalspunkte. Das sind Stellen im Bild, die sich
 klar von ihrer Umgebung abheben, zum Beispiel Ecken, Kanten oder besondere
 Texturmuster. Der bekannteste Algorithmus dafür heißt SIFT (**Scale-Invariant
 Feature Transform**).
 
-2. Merkmalszuordnung: Anschließend sucht der Algorithmus nach denselben
-Merkmalspunkten in verschiedenen Fotos. Wenn ein markanter Punkt auf Foto 1
-und auf Foto 3 zu sehen ist, wird er als derselbe Punkt identifiziert und
+2. *Merkmalszuordnung*: Anschließend sucht der Algorithmus nach denselben
+Merkmalspunkten in verschiedenen Fotos. Wenn ein markanter Punkt auf Foto 1 und
+auf Foto 3 zu sehen ist, wird er als derselbe Punkt identifiziert und
 zugeordnet.
 
-3. Kameraposition berechnen: Aus der Zuordnung gemeinsamer Merkmalspunkte
-in mehreren Fotos kann die relative Position und Ausrichtung der Kamera bei
-jeder Aufnahme berechnet werden. Gleichzeitig entstehen die ersten
-dreidimensionalen Koordinaten dieser Merkmalspunkte. Das Ergebnis ist eine
-**dünn besetzte Punktwolke** (englisch: *sparse point cloud*) mit einigen
-tausend bis zehntausend Punkten.
+3. *Kameraposition berechnen*: Aus der Zuordnung gemeinsamer Merkmalspunkte in
+mehreren Fotos kann die relative Position und Ausrichtung der Kamera bei jeder
+Aufnahme berechnet werden. Gleichzeitig entstehen die ersten dreidimensionalen
+Koordinaten dieser Merkmalspunkte. Das Ergebnis ist eine **dünn besetzte
+Punktwolke** (englisch: *sparse point cloud*) mit einigen tausend bis
+zehntausend Punkten.
 
 ```{admonition} Mini-Übung
 :class: tip
@@ -150,12 +164,12 @@ SfM kann nur dann Merkmalspunkte finden und zuordnen, wenn die Oberfläche
 genug visuelle Informationen enthält. Daraus ergeben sich zwei praktische
 Anforderungen an das Aufnahmeobjekt.
 
-1. **Textur**: Eine strukturlose, einfarbige Fläche, zum Beispiel eine weiße Wand,
+1. *Textur*: Eine strukturlose, einfarbige Fläche, zum Beispiel eine weiße Wand,
 liefert dem Algorithmus kaum Merkmalspunkte. Es gibt nichts Markantes, das von
 einem Foto zum nächsten wiedererkannt werden könnte. Objekte mit ausgeprägter
 Textur, zum Beispiel Holzmaserung, Rost oder Gravuren, liefern dagegen viele
 stabile Merkmalspunkte.
-2. **Mattheit**: Glänzende Oberflächen verändern ihr Erscheinungsbild stark, wenn
+2. *Mattheit*: Glänzende Oberflächen verändern ihr Erscheinungsbild stark, wenn
 sich der Aufnahmewinkel ändert. Ein Reflexionspunkt, der auf Foto 1 an einer
 bestimmten Stelle sichtbar ist, erscheint auf Foto 2 an einer anderen Stelle,
 weil er von der veränderten Kameraposition anders reflektiert wird. Der

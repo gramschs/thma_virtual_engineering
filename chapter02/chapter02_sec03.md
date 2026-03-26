@@ -24,6 +24,15 @@ Rekonstruktionspipeline. Am Ende beurteilen wir das Ergebnis kritisch.
   beurteilen und typische Probleme benennen.
 ```
 
+## Videotutorial
+
+```{dropdown} Video "Photogrammetrie | vom Foto zum 3D Modell - MESHROOM" von Medieninformatik
+<iframe width="955" height="537" src="https://www.youtube.com/embed/c9bRaXgUxsI" title="Photogrammetrie | vom Foto zum 3D Modell - MESHROOM" frameborder="0"
+allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;
+picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"
+allowfullscreen></iframe>
+```
+
 ## Installation
 
 Meshroom ist für Windows und Linux verfügbar. Die aktuelle Version

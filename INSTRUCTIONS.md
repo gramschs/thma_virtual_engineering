@@ -2,9 +2,10 @@
 
 ## Kontext
 
-Dieses Projekt enthält das Vorlesungsmaterial für das Modul **Virtual Engineering**
-an der Technischen Hochschule Mannheim (Prof. Dr.-Ing. Torsten Markus).
-Das Material wird mit **MyST Markdown** erstellt und ist für **Jupyter Book** konzipiert.
+Dieses Projekt enthält das Vorlesungsmaterial für das Modul **Virtual
+Engineering** an der Technischen Hochschule Mannheim (Prof. Dr. Simone Gramsch).
+Das Material wird mit **MyST Markdown** erstellt und ist für **Jupyter Book**
+konzipiert.
 
 ---
 
@@ -17,23 +18,24 @@ Das Material wird mit **MyST Markdown** erstellt und ist für **Jupyter Book** k
 - **Methodik:** Forschendes Lernen
 
 ### Leitprojekt: Kugelbahn
+
 Der rote Faden aller Kapitel ist die Digitalisierung, der 3D-Druck und die
 Simulation einer Kugelbahn:
 
-```
+```code
 Fotos aufnehmen → Mesh erzeugen → bereinigen → drucken       → simulieren → vergleichen
    (Meshroom)      (Meshroom)    (CloudCompare) (PrusaSlicer)  (VPython)   (Präsenztag)
 ```
 
-**Musterdatensatz:** Studierende erhalten einen vorgefertigten Foto-Datensatz der
-Kugelbahn (Option 3: eigenes Objekt fotografieren + Musterdatensatz nutzen).
+**Musterdatensatz:** Studierende erhalten einen vorgefertigten Foto-Datensatz
+der Kugelbahn (Option 3: eigenes Objekt fotografieren + Musterdatensatz nutzen).
 
 ---
 
 ## Tool-Stack (ausschließlich Open Source)
 
 | Tool | Zweck | Betriebssystem |
-|------|-------|----------------|
+| ---- | ----- | -------------- |
 | **Meshroom** | Photogrammetrie: Fotos → Mesh | Windows, Linux |
 | **CloudCompare** | Punktwolke bereinigen, Registration, Abweichungsanalyse | Windows, Linux, macOS |
 | **PrusaSlicer** | Slicing: Mesh → 3D-Druckdatei (alternativ: Cura) | Windows, Linux, macOS |
@@ -47,12 +49,12 @@ als Workaround bereitstellen.
 ## Vorlesungsgliederung (13 Wochen)
 
 | Phase | Wochen | Inhalt | Tool |
-|-------|--------|--------|------|
-| 1 | 1–2 | Grundlagen, Photogrammetrie, Aufnahme | Meshroom |
-| 2 | 3–6 | Reverse Engineering, Punktwolken, Qualitätssicherung | CloudCompare |
-| 3 | 7–8 | 3D-Druck, Slicing, Auswertung | PrusaSlicer |
-| 4 | 9–11 | Simulation mit Python/VPython | VPython |
-| 5 | 12–13 | Zusammenführung, Präsenztag | alle Tools |
+| ----- | ------ | ------ | ---- |
+| 1 | 1-2 | Grundlagen, Photogrammetrie, Aufnahme | Meshroom |
+| 2 | 3-6 | Reverse Engineering, Punktwolken, Qualitätssicherung | CloudCompare |
+| 3 | 7-8 | 3D-Druck, Slicing, Auswertung | PrusaSlicer |
+| 4 | 9-11 | Simulation mit Python/VPython | VPython |
+| 5 | 12-13 | Zusammenführung, Präsenztag | alle Tools |
 
 ---
 
@@ -62,15 +64,15 @@ Die Dateistruktur ist flexibel und richtet sich nach dem Inhalt der Woche:
 
 **Theorie-Wochen** (z. B. Woche 1, 12): 3 Dateien
 
-```
+```code
 chapterXX_sec01.md   → Theorieteil 1
 chapterXX_sec02.md   → Theorieteil 2
 chapterXX_sec03.md   → Übungen
 ```
 
-**Tool-Wochen** (z. B. Wochen 2–11): 4 Dateien
+**Tool-Wochen** (z. B. Wochen 2-11): 4 Dateien
 
-```
+```code
 chapterXX_sec01.md   → Theorieteil 1
 chapterXX_sec02.md   → Theorieteil 2
 chapterXX_sec03.md   → Praxisteil: Tool-Tutorial / Schritt-für-Schritt-Anleitung
@@ -93,7 +95,7 @@ kernelspec:
 
 ### Lernziele (Beginn jeder Sektion)
 
-```markdown
+````markdown
 ## Lernziele
 
 ```{admonition} Lernziele
@@ -101,20 +103,20 @@ kernelspec:
 * [ ] Lernziel 1
 * [ ] Lernziel 2
 ```
-```
+````
 
 ### Ausführbare Code-Zellen
 
-```markdown
+````markdown
 ```{code-cell} python
 # Python-Code hier
 print("Beispiel")
 ```
-```
+````
 
 ### Mini-Übungen (innerhalb der Theorieteile)
 
-```markdown
+````markdown
 ```{admonition} Mini-Übung
 :class: tip
 Aufgabentext hier.
@@ -132,9 +134,10 @@ Aufgabentext hier.
 # Musterlösung hier
 ```
 ````
-```
 
-### Nummerierte Übungen (sec03, Schwierigkeitsgrad mit Sternen)
+````
+
+### Nummerierte Übungen (Schwierigkeitsgrad mit Sternen)
 
 ```markdown
 ````{admonition} Übung X.Y (✩)        ← einfach
@@ -242,14 +245,14 @@ Schlecht: "Dies wird später behandelt."
 
 ---
 
-## Aufgabenstruktur (sec03)
+## Aufgabenstruktur
 
 Jede Übungsdatei folgt diesem Muster:
 
-1. Einfache Verständnisaufgaben (✩) – Konzepte anwenden
-2. Mittelschwere Aufgaben (✩✩) – Kombination von Konzepten
-3. Schwere Aufgaben (✩✩✩) – Transfer, Analyse, Reflexion
-4. Mini-Projekt – umfangreichere, offene Aufgabe mit optionaler Erweiterung
+1. Einfache Verständnisaufgaben (✩) - Konzepte anwenden
+2. Mittelschwere Aufgaben (✩✩) - Kombination von Konzepten
+3. Schwere Aufgaben (✩✩✩) - Transfer, Analyse, Reflexion
+4. Mini-Projekt - umfangreichere, offene Aufgabe mit optionaler Erweiterung
 
 Lösungen sind immer als aufklappbare Dropdowns eingebettet.
 
@@ -265,8 +268,8 @@ Lösungen sind immer als aufklappbare Dropdowns eingebettet.
 
 ## Hinweise für die Materialerstellung
 
-- **Just-in-time:** Material muss nicht vollständig vorab fertig sein; 1–2 Wochen Vorlauf reicht
-- **Forschendes Lernen:** Transparenz kommunizieren – Workflow wird gemeinsam erarbeitet
+- **Just-in-time:** Material muss nicht vollständig vorab fertig sein; 1-2 Wochen Vorlauf reicht
+- **Forschendes Lernen:** Transparenz kommunizieren - Workflow wird gemeinsam erarbeitet
 - **Starter-Code:** Für VPython-Aufgaben immer einen Grundgerüst-Code bereitstellen
 - **YouTube-Tutorials:** Für Tool-Einführungen (CloudCompare, Meshroom) können englische
   Tutorials verlinkt werden, statt eigene Videos zu erstellen

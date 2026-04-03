@@ -25,9 +25,16 @@ project:
         - file: chapter02/chapter02_sec02.md
         - file: chapter02/chapter02_sec03.md
         - file: chapter02/chapter02_sec04.md
+    - title: 3. Punktwolken bereinigen
+      children:
+        - file: chapter03/chapter03_sec01.md
+        - file: chapter03/chapter03_sec02.md
+        - file: chapter03/chapter03_sec03.md
+        - file: chapter03/chapter03_sec04.md
     
 site:
   template: book-theme
-  # options:
+  options:
+    style: ./my_styling.css
   #   favicon: favicon.ico
   #   logo: site_logo.png

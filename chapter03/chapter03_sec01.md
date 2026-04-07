@@ -97,7 +97,8 @@ Seite in genau 2 Dreiecke aufgeteilt wird, entsteht ein trianguliertes Mesh.
 
 1. Wie viele Faces hat das resultierende Dreiecksmesh?
 2. Wie viele Edges hat es insgesamt? (Hinweis: Die Euler-Charakteristik für
-   geschlossene Netze lautet V - E + F = 2.)
+   zusammenhängende, geschlossene Netze mit Kugel-Topologie wie die Oberfläche
+   eines Würfels lautet V - E + F = 2.)
 ```
 
 ````{admonition} Lösung
@@ -165,9 +166,10 @@ Auflösung zu analysieren und gezielt zu vereinfachen.
 ### Ist das Mesh wasserdicht?
 
 Ein **Watertight Mesh** (wasserdichtes Mesh) schließt ein vollständiges Volumen
-ein: ohne Lücken, ohne sich selbst überschneidende Flächen und ohne Kanten, die
-nur mit einer einzigen Fläche verbunden sind (sogenannte "Non-Manifold Edges";
-ähnliche Probleme können auch an einzelnen Vertices auftreten).
+ohne Lücken ein, d.h. keine Randkanten (Kanten mit nur einer angrenzenden Fläche
+"Holes"), keine "Non-Manifold Edges" (Kanten mit mehr als zwei Flächen oder
+uneindeutiger Innen-Außen-Zuordnung) und idealerweise keine sich selbst
+schneidenden Flächen.
 
 Stellen wir uns vor, wir würden das Mesh wie einen Behälter mit Wasser füllen:
 Bei einem Watertight Mesh würde kein einziger Tropfen auslaufen. Diese

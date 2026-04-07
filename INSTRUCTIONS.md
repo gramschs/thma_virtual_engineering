@@ -27,9 +27,6 @@ Fotos aufnehmen → Mesh erzeugen → bereinigen → drucken       → simuliere
    (Meshroom)      (Meshroom)    (CloudCompare) (PrusaSlicer)  (VPython)   (Präsenztag)
 ```
 
-**Musterdatensatz:** Studierende erhalten einen vorgefertigten Foto-Datensatz
-der Kugelbahn (Option 3: eigenes Objekt fotografieren + Musterdatensatz nutzen).
-
 ---
 
 ## Tool-Stack (ausschließlich Open Source)
@@ -41,8 +38,8 @@ der Kugelbahn (Option 3: eigenes Objekt fotografieren + Musterdatensatz nutzen).
 | **PrusaSlicer** | Slicing: Mesh → 3D-Druckdatei (alternativ: Cura) | Windows, Linux, macOS |
 | **Python / VPython** | Simulation der Kugelbahn | plattformunabhängig |
 
-**Wichtig:** macOS-Nutzer können Meshroom nicht nativ nutzen → Musterdatensatz
-als Workaround bereitstellen.
+**Wichtig:** macOS-Nutzer können Meshroom nicht nativ nutzen → ab Kapitel 4
+arbeiten alle Studierenden mit demselben exportierten Mesh.
 
 ---
 
@@ -149,11 +146,50 @@ Aufgabentext hier.
 
 ### Nummerierte Übungen (Schwierigkeitsgrad mit Sternen)
 
+Admonition-Blöcke werden grundsätzlich mit **drei Backticks** (` ``` `) geöffnet
+und geschlossen. **Vier Backticks** (` ```` `) sind nur dann erforderlich, wenn
+der Block einen eingebetteten Fenced Code Block enthält (` ```python ... ``` `),
+da MyST sonst den inneren Block als Abschluss des äußeren interpretiert.
+
+Drei Backticks (Normalfall, kein eingebetteter Code):
+
 ```markdown
-````{admonition} Übung X.Y (✩)        ← einfach
-````{admonition} Übung X.Y (✩✩)       ← mittel
-````{admonition} Übung X.Y (✩✩✩)      ← schwer
-````{admonition} Übung X.Y (Mini-Projekt)  ← umfangreich
+```{admonition} Übung X.Y (✩)
+:class: tip
+Aufgabentext hier.
+```
+
+```{admonition} Lösung
+:class: tip
+:class: dropdown
+Lösungstext hier.
+```
+```
+
+Vier Backticks (nur wenn die Lösung einen ```python-Block enthält):
+
+````markdown
+````{admonition} Übung X.Y (✩✩)
+:class: tip
+Aufgabentext hier.
+````
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+```python
+# Musterlösung hier
+```
+````
+````
+
+Schwierigkeitsgrade:
+
+```markdown
+```{admonition} Übung X.Y (✩)             ← einfach
+```{admonition} Übung X.Y (✩✩)            ← mittel
+```{admonition} Übung X.Y (✩✩✩)           ← schwer
+```{admonition} Übung X.Y (Mini-Projekt)  ← umfangreich
 ```
 
 ### Eingebettete YouTube-Videos

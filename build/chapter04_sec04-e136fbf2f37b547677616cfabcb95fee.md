@@ -1,0 +1,317 @@
+---
+kernelspec:
+  name: python3
+  display_name: 'Python 3'
+---
+
+# Übungen
+
+````{admonition} Übung 4.1 (✩)
+:class: tip
+Ordnen Sie jeder der folgenden Situationen das passende Werkzeug aus
+CloudCompare zu und begründen Sie Ihre Wahl in einem Satz.
+
+**Werkzeuge:** Segment Tool, SOR-Filter, Laplacian Smoothing, keines dieser
+Werkzeuge
+
+**Situationen:**
+
+1. Unterhalb des Objekts liegt eine flache Dreiecksschicht, die offensichtlich
+   die Tischplatte darstellt, auf der das Objekt während der Aufnahme stand.
+2. Über die gesamte Oberfläche des Meshes verteilt ragen einzelne Vertices
+   etwa 3 bis 5 mm aus der Oberfläche, ohne erkennbares Muster.
+3. Eine eigentlich plane Fläche auf der Oberseite des Objekts wirkt im 3D
+   Viewer leicht wellig, obwohl das reale Objekt dort vollkommen glatt ist.
+4. An der Unterseite des Objekts fehlt ein größeres, kreisrundes Stück
+   Geometrie, weil diese Fläche beim Fotografieren nicht erreichbar war.
+5. Neben dem eigentlichen Objekt schwebt im 3D Viewer eine kleine,
+   isolierte Dreiecks-Insel ohne Verbindung zum Rest des Meshes.
+````
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+1. **Segment Tool:** Die Tischplatte ist räumlich klar vom Objekt getrennt
+   und lässt sich nur manuell identifizieren, da ein Algorithmus nicht weiß,
+   was zum Objekt gehört und was nicht.
+
+2. **SOR-Filter:** Über die gesamte Oberfläche verteilte Ausreißer-Vertices
+   sind ein klassischer Anwendungsfall für den statistischen Ausreißerfilter,
+   der Punkte mit auffällig großem mittlerem Nachbarabstand entfernt.
+
+3. **Laplacian Smoothing:** Hochfrequentes Oberflächenrauschen auf einer
+   eigentlich glatten Fläche ist genau der Anwendungsfall für den
+   Glättungsfilter, der Vertices iterativ in Richtung des Schwerpunkts ihrer
+   Nachbarn verschiebt.
+
+4. **Keines dieser Werkzeuge:** Eine fehlende Fläche ist eine Lücke im Mesh,
+   die durch Bereinigung nicht geschlossen werden kann. Dieses Problem
+   entsteht beim Fotografieren und kann nur durch eine neue Aufnahmesession
+   mit besserer Abdeckung der Unterseite oder durch Lücken-Reparatur in einem
+   spezialisierten Werkzeug (zum Beispiel in PrusaSlicer in Kapitel 7) behoben
+   werden.
+
+5. **Segment Tool:** Eine schwebende Dreiecks-Insel lässt sich am schnellsten
+   und sichersten manuell mit dem Segment Tool selektieren und entfernen. Der
+   SOR-Filter würde sie nicht zuverlässig erkennen, weil die Dreiecke
+   innerhalb der Insel geometrisch konsistent sein können.
+````
+
+---
+
+````{admonition} Übung 4.2 (✩✩)
+:class: tip
+Sie wenden den SOR-Filter in drei verschiedenen Konfigurationen auf dasselbe
+Mesh mit 420.000 Vertices an und protokollieren jeweils die Anzahl der
+entfernten Punkte sowie eine qualitative Beobachtung:
+
+| Konfiguration | k | nSigma | Entfernte Punkte | Beobachtung |
+| ------------- | - | ------ | ---------------- | ----------- |
+| A | 6 | 1.0 | 18.340 | Viele Punkte an Kanten und Krümmungen fehlen danach |
+| B | 6 | 2.0 | 4.812 | Ausreißer entfernt, Kanten und Krümmungen intakt |
+| C | 30 | 2.0 | 630 | Kaum sichtbarer Effekt, grobe Spikes bleiben erhalten |
+
+Beantworten Sie die folgenden Fragen:
+
+1. Erklären Sie, warum Konfiguration A Punkte an Kanten und Krümmungen
+   entfernt, obwohl diese zum Objekt gehören.
+2. Erklären Sie, warum Konfiguration C kaum Wirkung zeigt, obwohl k und
+   nSigma beides häufig verwendete Werte sind.
+3. Konfiguration B entfernt 4.812 Punkte, das entspricht etwa 1.1 Prozent
+   der Gesamtpunktzahl. Begründen Sie, warum dieser Wert ein gutes Zeichen
+   ist und nicht etwa bedeutet, dass der Filter zu wenig entfernt hat.
+4. Welche Konfiguration würden Sie für ein Mesh mit vielen scharfen Kanten
+   und feinen Gravuren wählen? Begründen Sie Ihre Antwort.
+````
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+1. An Kanten und Krümmungen liegen Vertices naturgemäß weiter von ihren
+   Nachbarn entfernt als auf flachen Flächen, weil die Oberfläche dort eine
+   starke Richtungsänderung vollzieht. Mit nSigma = 1.0 liegt der Schwellenwert
+   so nah am globalen Mittelwert, dass auch diese geometrisch begründeten
+   Abstandserhöhungen als Ausreißer eingestuft werden. Der Filter "sieht" nicht,
+   ob ein großer Nachbarabstand durch Rauschen oder durch echte Geometrie
+   entsteht.
+
+2. Mit k = 30 wird der mittlere Nachbarabstand für jeden Punkt über eine sehr
+   große Nachbarschaft gemittelt. Echte Ausreißer ziehen den lokalen Mittelwert
+   etwas nach oben, werden aber durch die vielen unauffälligen Nachbarpunkte
+   stark verdünnt. Der berechnete Abstandswert des Ausreißers weicht damit
+   weniger stark vom globalen Mittelwert ab, als es bei k = 6 der Fall wäre,
+   und überschreitet den nSigma-Schwellenwert nicht mehr.
+
+3. Ein Rückgang von etwa 1 Prozent bedeutet, dass der Filter selektiv gewirkt
+   hat: Er hat statistisch auffällige Punkte entfernt, ohne flächendeckend
+   Geometrie zu löschen. Bei einem gut aufgenommenen Objekt unter normalen
+   Bedingungen liegen die meisten Punkte nah beieinander, und echte Ausreißer
+   machen nur einen kleinen Bruchteil der Gesamtpunktzahl aus. Ein Wert von
+   1 Prozent ist deshalb ein Zeichen, dass der Filter das tut, wofür er
+   gedacht ist.
+
+4. Für ein Mesh mit scharfen Kanten und feinen Gravuren würde man Konfiguration
+   B (k = 6, nSigma = 2.0) wählen oder nSigma auf 2.5 bis 3.0 erhöhen. Ein
+   kleines k macht den Filter lokal sensitiv, sodass er feine Ausreißer neben
+   echten Detailstrukturen erkennt. Ein großes nSigma stellt sicher, dass
+   Punkte an Kanten und Gravuren, die geometrisch bedingt weiter von ihren
+   Nachbarn entfernt liegen, nicht fälschlicherweise entfernt werden.
+````
+
+---
+
+````{admonition} Übung 4.3 (✩✩✩)
+:class: tip
+Laplacian Smoothing verbessert die Oberflächenqualität, verändert aber
+gleichzeitig die Geometrie. In dieser Aufgabe analysieren wir diesen
+Zielkonflikt quantitativ.
+
+**Gegebene Messwerte** (simuliert; Vergleich des geglätteten Meshes mit dem
+ungeglätteten Original, gemessen als mittlere Abweichung zur Ursprungsgeometrie
+in mm):
+
+| Iterationen | Mittlere Abweichung (mm) | Max. Abweichung (mm) | Rauigkeit RMS (mm) |
+| ----------- | ------------------------ | -------------------- | ------------------ |
+| 0           | 0.00                     | 0.00                 | 0.41               |
+| 2           | 0.08                     | 0.31                 | 0.29               |
+| 5           | 0.19                     | 0.74                 | 0.21               |
+| 10          | 0.38                     | 1.52                 | 0.14               |
+| 20          | 0.71                     | 2.87                 | 0.09               |
+
+**Aufgaben:**
+
+
+1. Visualisieren Sie mittlere Abweichung und Rauigkeit als Funktion der
+   Iterationsanzahl in einem gemeinsamen Diagramm mit zwei Y-Achsen (Plotly).
+   Beschriften Sie beide Achsen mit Einheit.
+
+
+2. Berechnen Sie für jeden Schritt (0→2, 2→5, 5→10, 10→20) zunächst die
+   **absolute Rauigkeitsreduktion** ΔR und die **absolute Zunahme der mittleren
+   Abweichung** ΔG (beide in mm). Bilden Sie anschließend den Quotienten
+
+   $$
+   Q = \frac{\Delta R}{\Delta G}
+   $$
+
+   und interpretieren Sie, ab welchem Schritt der zusätzliche Aufwand die
+   zusätzliche Glättung nicht mehr rechtfertigt.
+
+
+3. Nehmen Sie an, die Fertigungstoleranz des Originals beträgt ±0.5 mm.
+   Bestimmen Sie die maximale Iterationsanzahl, bei der die mittlere
+   Abweichung noch unterhalb dieser Toleranz bleibt, und begründen Sie,
+   warum die mittlere Abweichung hier das relevantere Maß ist als die maximale
+   Abweichung.
+````
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+```{code-cell} python
+import plotly.graph_objects as go
+
+iterationen    = [0, 2, 5, 10, 20]
+abweichung     = [0.00, 0.08, 0.19, 0.38, 0.71]   # mm
+rauigkeit      = [0.41, 0.29, 0.21, 0.14, 0.09]   # mm
+
+# Aufgabe 1: Diagramm mit zwei Y-Achsen
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(
+    x=iterationen, y=abweichung,
+    name="Mittlere Abweichung (mm)",
+    mode="lines+markers",
+    marker=dict(size=8, color="#E60000"),
+    line=dict(color="#E60000")
+))
+
+fig.add_trace(go.Scatter(
+    x=iterationen, y=rauigkeit,
+    name="Rauigkeit RMS (mm)",
+    mode="lines+markers",
+    marker=dict(size=8, color="#005A94"),
+    line=dict(color="#005A94"),
+    yaxis="y2"
+))
+
+fig.update_layout(
+    title="Laplacian Smoothing: Geometrieveränderung vs. Rauigkeitsreduktion",
+    xaxis=dict(title="Iterationen"),
+    yaxis=dict(title="Mittlere Abweichung (mm)", color="#E60000"),
+    yaxis2=dict(
+        title="Rauigkeit RMS (mm)",
+        overlaying="y",
+        side="right",
+        color="#005A94"
+    ),
+    legend=dict(x=0.02, y=0.98)
+)
+
+fig.show()
+
+# Aufgabe 2: Effizienz-Quotient pro Schritt (ΔR / ΔG, jeweils absolut in mm)
+schritte = [(0, 2), (2, 5), (5, 10), (10, 20)]
+idx      = {v: i for i, v in enumerate(iterationen)}
+
+print(f"{'Schritt':<10} {'ΔR (mm)':<10} {'ΔG (mm)':<10} {'Q = ΔR/ΔG'}")
+print("-" * 40)
+for start, ende in schritte:
+    i_start = idx[start]
+    i_ende  = idx[ende]
+    delta_R = rauigkeit[i_start]  - rauigkeit[i_ende]
+    delta_G = abweichung[i_ende] - abweichung[i_start]
+    quotient = delta_R / delta_G if delta_G != 0 else float("inf")
+    print(f"{start:>2}→{ende:<7} {delta_R:<10.3f} {delta_G:<10.3f} {quotient:.2f}")
+```
+
+**Interpretation zu Aufgabe 2**
+
+Die berechneten Werte sind:
+
+- 0 → 2: ΔR = 0.12 mm, ΔG = 0.08 mm → Q ≈ 1.50  
+- 2 → 5: ΔR = 0.08 mm, ΔG = 0.11 mm → Q ≈ 0.73  
+- 5 → 10: ΔR = 0.07 mm, ΔG = 0.19 mm → Q ≈ 0.37  
+- 10 → 20: ΔR = 0.05 mm, ΔG = 0.33 mm → Q ≈ 0.15
+
+Der Quotient Q beschreibt, wie viel Rauigkeit wir pro zusätzlichem Millimeter
+Geometrieveränderung gewinnen. Die höchste Effizienz erreichen wir im ersten
+Schritt (0→2 Iterationen). Danach sinkt Q stetig:
+
+- 2 → 5 bringt noch einen vernünftigen Kompromiss,
+- 5 → 10 ist bereits deutlich weniger effizient,
+- 10→20 liefert nur noch wenig zusätzliche Glättung bei relativ großer
+  zusätzlicher Geometrieverzerrung.
+
+Ab etwa 10 Iterationen ist der zusätzliche Nutzen (weitere Rauigkeitsreduktion)
+im Vergleich zur zusätzlichen Verfälschung der Geometrie kaum noch zu
+rechtfertigen.
+
+**Lösung zu Aufgabe 3**
+
+Die mittlere Abweichung beträgt:
+
+- bei 10 Iterationen: 0.38 mm (innerhalb der ±0.5 mm Toleranz),
+- bei 20 Iterationen: 0.71 mm (außerhalb der Toleranz).
+
+Die maximal zulässige Iterationsanzahl unter diesen Annahmen ist also 10.
+
+Die mittlere Abweichung ist hier das relevantere Maß als die maximale
+Abweichung, weil sie beschreibt, wie stark sich das Modell im Durchschnitt
+über die gesamte Oberfläche verändert. Einzelne Spitzenwerte der maximalen
+Abweichung können an lokal schwierigen Stellen (z.B. scharfe Kanten,
+Reflexe) auftreten, ohne dass die Gesamtqualität des Modells für die
+Reverse-Engineering-Aufgabe unbrauchbar wird. Für die Beurteilung, ob das
+gesamte Modell noch im Rahmen der Fertigungstoleranz liegt, ist daher die
+mittlere Abweichung aussagekräftiger.
+````
+
+---
+
+````{admonition} Übung 4.4 (Mini-Projekt)
+:class: tip
+Führen Sie die vollständige Bereinigungspipeline aus Abschnitt 4.3 auf Ihrem
+eigenen Meshroom-Ergebnis durch und dokumentieren Sie jeden Schritt.
+
+**Teilaufgaben:**
+
+1. **Sichtprüfung:** Laden Sie Ihr Mesh in CloudCompare und füllen Sie die
+   Befundtabelle aus Abschnitt 4.3 mit Ihren eigenen Beobachtungen aus.
+   Notieren Sie außerdem Vertices- und Faces-Zahl aus dem Properties Panel.
+
+2. **Segmentierung:** Entfernen Sie die gesamte Hintergrundgeometrie mit dem
+   Segment Tool. Notieren Sie, wie viele Passes Sie benötigt haben und aus
+   welchen Perspektiven Sie jeweils gearbeitet haben.
+
+3. **SOR-Filter:** Wenden Sie den SOR-Filter auf die Vertex-Punktwolke Ihres
+   Meshes an. Notieren Sie die gewählten Parameter k und nSigma sowie die
+   Anzahl der entfernten Punkte. Falls Sie die Parameter gegenüber den
+   Ausgangswerten (k = 6, nSigma = 2.0) angepasst haben, begründen Sie warum.
+
+4. **Laplacian Smoothing:** Wenden Sie Laplacian Smoothing an und notieren
+   Sie die gewählte Iterationsanzahl. Beschreiben Sie in zwei bis drei Sätzen,
+   welchen visuellen Unterschied Sie gegenüber dem ungefilterten Mesh
+   beobachten.
+
+5. **Export und Python-Check:** Exportieren Sie das bereinigte Mesh als `.ply`
+   und führen Sie den Python-Check aus Abschnitt 4.3 durch. Vergleichen Sie
+   die Ausgabe mit dem `trimesh`-Check aus Kapitel 3 und kommentieren Sie die
+   Unterschiede.
+
+6. **Reflexion:** Beantworten Sie in drei bis vier Sätzen: Welcher
+   Bereinigungsschritt hat bei Ihrem Objekt am meisten gebracht? Welches
+   Problem ist nach der Bereinigung noch offen geblieben, und was würden Sie
+   bei einer erneuten Aufnahme anders machen, um dieses Problem zu vermeiden?
+
+<!--
+**Anforderungen an die Dokumentation:** ca. 300 bis 400 Wörter, mindestens
+ein Screenshot aus CloudCompare pro Bereinigungsschritt (vor und nach), alle
+verwendeten Parameter in einer Tabelle zusammengefasst.
+-->
+
+*Optionale Erweiterung:* Führen Sie den SOR-Filter zweimal mit unterschiedlichen
+Parametern durch (zum Beispiel nSigma = 1.5 und nSigma = 3.0) und vergleichen
+Sie die Ergebnisse qualitativ und quantitativ. Bei welchem Wert sehen Sie den
+besten Kompromiss aus Ausreißerentfernung und Geometrieerhalt, und deckt sich
+Ihre visuelle Einschätzung mit der Anzahl der entfernten Punkte?
+````

@@ -1,0 +1,238 @@
+---
+kernelspec:
+  name: python3
+  display_name: 'Python 3'
+---
+
+# 4.1 Was ist CloudCompare, und wie ist es aufgebaut?
+
+Das Meshroom-Ergebnis liegt vor uns: ein texturiertes Mesh, das auf den ersten
+Blick beeindruckend aussieht. Doch wenn wir genauer hinschauen, erkennen wir
+die Probleme, die wir in Kapitel 3 systematisch beschrieben haben. Die
+Tischplatte klebt noch am Modell. Einzelne Punkte ragen wie Nadeln aus der
+Oberfläche. Und die Unterseite des Objekts ist ein Flickwerk aus fehlerhaften
+Dreiecken. Meshroom hat seine Arbeit getan. Jetzt beginnt unsere.
+
+## Lernziele
+
+```{admonition} Lernziele
+:class: attention
+* [ ] Sie können CloudCompare installieren und starten.
+* [ ] Sie können die vier Hauptbereiche der CloudCompare-Benutzeroberfläche
+  benennen und ihre Funktion erklären.
+* [ ] Sie können den Unterschied zwischen einer Punktwolke und einem Mesh im
+  DB Tree erklären und eine geladene Entität korrekt benennen.
+* [ ] Sie können eine `.obj`- und eine `.ply`-Datei in CloudCompare laden,
+  im 3D Viewer inspizieren und grundlegende Informationen wie Vertices- und
+  Faces-Zahl ablesen.
+```
+
+## Warum brauchen wir nach Meshroom noch ein weiteres Werkzeug?
+
+Stellen wir uns vor, wir übergeben das Meshroom-Ergebnis direkt an
+einen Slicer. Der Slicer versucht, die Druckbahnen zu berechnen, und gibt
+nach wenigen Sekunden eine Warnung aus: "Mesh is not manifold." Der Druck
+schlägt fehl oder liefert ein unbrauchbares Ergebnis, weil der Slicer nicht
+entscheiden kann, welche Seite des Meshes innen und welche außen ist. Der
+Grund dafür liegt nicht beim Slicer, sondern im Mesh selbst, das noch
+alle Artefakte enthält, die Meshroom produziert hat.
+
+*Reicht es also nicht, Meshroom einfach besser zu parametrisieren und das
+Problem an der Wurzel zu lösen?*
+
+Zum Teil ja. Eine sorgfältigere Aufnahme und bessere Meshroom-Parameter
+reduzieren die Zahl der Artefakte erheblich, wie wir in Kapitel 3 gesehen
+haben. Doch selbst unter optimalen Bedingungen rekonstruiert Meshroom immer
+auch Teile der Umgebung, erzeugt an schwierigen Oberflächen Rauschen und
+liefert ein Mesh, das nicht wasserdicht ist. Eine Nachbearbeitungsstufe ist
+deshalb kein Zeichen eines schlechten Scans, sondern ein fester Bestandteil
+jedes professionellen Reverse-Engineering-Workflows.
+
+**CloudCompare** ist das Werkzeug, das wir für diese Nachbereitung einsetzen. Es
+ist eine Open-Source-Software zur Verarbeitung und Analyse von Punktwolken und
+Meshes und läuft auf Windows, Linux und macOS. Es wurde ursprünglich für die
+Analyse von Laserscandaten entwickelt und ist heute in Forschung und Industrie
+das am weitesten verbreitete frei verfügbare Werkzeug für diese Aufgabe. Für uns
+ist CloudCompare die Brücke zwischen dem rohen Meshroom-Ergebnis und dem
+druckfertigen Modell, das wir in Kapitel 7 den Slicer übergeben werden. In
+Kapitel 6 werden wir CloudCompare außerdem nutzen, um Abweichungen zwischen zwei
+Scans quantitativ zu messen.
+
+```{dropdown} Video "CloudCompare - Getting Started" von OpenScan Community
+<iframe width="817" height="460" src="https://www.youtube.com/embed/UNkIHWkZl4w"
+title="CloudCompare Getting Started" frameborder="0"
+allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;
+picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"
+allowfullscreen></iframe>
+```
+
+```{admonition} Installation
+:class: note
+CloudCompare kann direkt von der offiziellen Website heruntergeladen werden:
+
+[https://www.cloudcompare.org/release/index.html](https://www.cloudcompare.org/release/index.html).
+
+Es sind Installer für Windows, Linux und macOS verfügbar. Eine Installation im
+eigentlichen Sinne ist unter Windows und macOS mit dem jeweiligen Installer
+unkompliziert. Bei MacOS können wir beispielsweise brew benutzen: `brew install
+--cask cloudcompare`. Unter Linux empfiehlt sich die Flatpak-Version.
+```
+
+## Wie ist die Benutzeroberfläche aufgebaut?
+
+Nach dem Start von CloudCompare sehen wir eine Oberfläche, die auf den ersten
+Blick weniger modern wirkt als Meshroom, aber logisch aufgebaut ist. Sie
+besteht aus vier Hauptbereichen.
+
+```{figure} pics/chap04_fig01_cloudcompare_start.png
+Startbildschirm der Software CloudCompare
+(Quelle: eigene Darstellung; Lizenz [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0))
+```
+
+Der **DB Tree** (links oben) ist das Herzstück der CloudCompare-Oberfläche.
+"DB" steht für "Database". Alle geladenen Objekte erscheinen hier als
+Baumstruktur, ähnlich einem Dateimanager. Jede Punktwolke, jedes Mesh und
+jede berechnete Skalarfeld-Ebene wird als eigener Eintrag angezeigt. Ein
+Augensymbol neben jedem Eintrag schaltet die Sichtbarkeit im 3D Viewer ein
+und aus. Wenn wir später mehrere Meshes gleichzeitig geladen haben, ist der
+DB Tree unser wichtigstes Orientierungswerkzeug.
+
+Das **Properties Panel** (links unten) zeigt die Eigenschaften des im DB Tree
+aktuell ausgewählten Objekts. Hier finden wir unter anderem die Anzahl der
+Vertices und Faces, die Boundingbox (die kleinste achsenparallele Box, die
+das Objekt vollständig einschließt) sowie Einstellungen für die
+Darstellungsfarbe und die Transparenz.
+
+Der **3D Viewer** (Mitte und rechts) ist der Hauptarbeitsbereich. Hier
+visualisieren wir Punktwolken und Meshes und führen interaktive Operationen
+durch, zum Beispiel die manuelle Selektion mit dem Segment Tool. Die
+Navigation im 3D Viewer funktioniert mit der Maus: linke Maustaste zum
+Drehen, Mausrad zum Zoomen, mittlere Maustaste (oder Umschalt und linke
+Maustaste) zum Verschieben.
+
+Die **Konsole** (unten) gibt Statusmeldungen, Warnungen und Fehlermeldungen
+aus. Sie ist besonders nützlich, wenn ein Filter unerwartet wenige oder gar
+keine Punkte entfernt hat oder wenn ein Export fehlgeschlagen ist.
+
+```{admonition} Mini-Übung
+:class: tip
+Starten Sie CloudCompare und benennen Sie die vier Hauptbereiche der
+Oberfläche, ohne diesen Text zu Rate zu ziehen. Notieren Sie außerdem, was
+der DB Tree mit einem Dateimanager gemein hat und wo die Analogie ihre
+Grenzen hat.
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+Die vier Hauptbereiche sind DB Tree, Properties Panel, 3D Viewer und Konsole.
+
+Die Analogie zum Dateimanager funktioniert insofern, als beide eine
+hierarchische Struktur von Objekten anzeigen und die Sichtbarkeit einzelner
+Einträge gesteuert werden kann. Der Unterschied liegt darin, dass der DB Tree
+keine Dateien auf der Festplatte, sondern Objekte im Arbeitsspeicher der
+laufenden CloudCompare-Sitzung verwaltet. Wenn wir CloudCompare schließen,
+ohne das Projekt zu speichern, sind alle geladenen Objekte verloren, auch
+wenn die Originaldateien auf der Festplatte erhalten bleiben.
+````
+
+## Wie lädt CloudCompare unsere Daten?
+
+CloudCompare kann eine Vielzahl von Dateiformaten öffnen, darunter `.ply`,
+`.obj`, `.stl`, `.las` und viele weitere. Für unseren Workflow sind `.obj`
+und `.ply` die relevanten Formate, da Meshroom seine Ergebnisse in diesen
+Formaten ausgibt, wie wir in Kapitel 3 gesehen haben.
+
+Wir öffnen eine Datei entweder über das Menü `File > Open` oder per
+Drag-and-Drop direkt in den 3D Viewer. Bei einer `.obj`-Datei öffnet
+CloudCompare automatisch auch die zugehörige `.mtl`-Datei und die Texturdateien
+(`.png`), sofern sie sich im selben Ordner befinden, oder an den in der `.mtl`
+hinterlegten relativen Pfaden. Es ist deshalb wichtig, beim Export aus Meshroom
+immer alle Dateien gemeinsam in denselben Ordner zu kopieren, wie wir es in
+Abschnitt 3.3 beschrieben haben.
+
+*Aber warum fragt CloudCompare beim Öffnen einer Datei manchmal nach
+Einheiten, obwohl wir gar keine Maßeinheit angegeben haben?*
+
+Punktwolken und Meshes aus der Photogrammetrie haben keine inhärente
+physikalische Einheit. Meshroom exportiert zunächst einheitslos. In diesem
+Beispiel interpretieren wir sie als Millimeter und skalieren entsprechend. Wenn
+der Import-Dialog nach der Einheit fragt, wählen wir "mm". Wählen wir
+versehentlich "m", erscheint das Modell im 3D Viewer winzig klein, weil
+CloudCompare alle Koordinaten als Meter interpretiert. Dieser Fehler fällt
+spätestens auf, wenn wir im Properties Panel die Boundingbox ablesen: Bei einem
+handgroßen Objekt sollten die Abmessungen im Bereich von 100 bis 300 mm liegen,
+nicht im Bereich von 0.1 bis 0.3.
+
+Nach dem Import erscheint das Objekt als neuer Eintrag im DB Tree. CloudCompare
+unterscheidet dabei zwischen zwei Entitätstypen, die durch unterschiedliche
+Symbole gekennzeichnet sind: ein Wolkensymbol für Punktwolken und ein
+Netzsymbol für Meshes. Wichtig: CloudCompare behandelt ein von Meshroom
+importiertes `.obj`-Mesh intern als Mesh-Entität, keine Punktwolke. Einzelne
+Operationen, zum Beispiel der SOR-Filter, sind nur für Punktwolken verfügbar.
+In Abschnitt 4.2 werden wir sehen, wie wir damit umgehen.
+
+## Was sehen wir, wenn das Mesh geladen ist?
+
+Sobald das Mesh geladen ist, erscheint es im 3D Viewer. Beim ersten Blick auf
+ein frisches Meshroom-Ergebnis sehen wir in der Regel das texturierte Modell
+des eigenen Objekts, umgeben von allem, was auf den Fotos sonst noch zu sehen
+war. Je nach Aufnahmesituation kann das ein mehr oder weniger großes Stück
+Tischplatte sein, seitliche Fragmente des Hintergrunds oder schwebende
+Dreiecks-Inseln in der Luft.
+
+Für eine erste Sichtprüfung nutzen wir die Qualitätskriterien aus Abschnitt
+3.1 als Checkliste. Wir drehen das Modell im 3D Viewer mit der Maus und fragen
+uns: Ist das Objekt vollständig? Gibt es sichtbare Lücken? Sind Artefakte
+erkennbar? Wie groß ist die Hintergrundgeometrie?
+
+Im Properties Panel lesen wir die Vertices- und Faces-Zahl ab und vergleichen
+sie mit dem `trimesh`-Check aus Abschnitt 3.3. Die Zahlen sollten
+übereinstimmen. Wenn sie deutlich abweichen, hat CloudCompare beim Import
+möglicherweise das Mesh vereinfacht oder nur einen Teil der Datei gelesen.
+Ein Blick in die Konsole klärt in solchen Fällen schnell, was passiert ist.
+
+```{admonition} Mini-Übung
+:class: tip
+Laden Sie Ihr Meshroom-Ergebnis aus Kapitel 3 in CloudCompare. Lesen Sie im
+Properties Panel die Vertices- und Faces-Zahl ab und vergleichen Sie sie mit
+der Ausgabe Ihres `trimesh`-Checks aus Abschnitt 3.3. Beantworten Sie
+außerdem folgende Fragen:
+
+1. Welches Entitätssymbol zeigt CloudCompare im DB Tree für Ihr Mesh?
+2. Welche Artefakte sehen Sie auf den ersten Blick im 3D Viewer?
+3. Was zeigt die Konsole unmittelbar nach dem Import?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+Da diese Übung auf Ihrem eigenen Mesh basiert, gibt es keine einheitliche
+Musterlösung. Typische Beobachtungen beim ersten Import sind:
+
+Das Entitätssymbol im DB Tree ist das Netzsymbol (Mesh-Entität), nicht das
+Wolkensymbol. Die Vertices- und Faces-Zahl stimmt mit dem `trimesh`-Check
+überein, wenn alle Dateien korrekt exportiert wurden. In der Konsole erscheint
+eine Zeile wie "Mesh loaded: 284532 vertices, 569041 triangles" sowie
+gegebenenfalls eine Warnung, falls Texturdateien nicht gefunden wurden.
+
+Im 3D Viewer sind fast immer eine flächige Hintergrundgeometrie unter dem
+Objekt sowie einzelne schwebende Fragmente sichtbar. Diese werden wir in
+Abschnitt 4.3 systematisch entfernen.
+````
+
+## Zusammenfassung und Ausblick
+
+In diesem Abschnitt haben wir CloudCompare als das zentrale Werkzeug für die
+Nachbereitung unseres Meshroom-Ergebnisses kennengelernt. Die vier
+Hauptbereiche der Oberfläche sind DB Tree, Properties Panel, 3D Viewer und
+Konsole. Beim Import achten wir auf die korrekte Einheit (Millimeter) und
+darauf, dass alle zugehörigen Texturdateien im selben Ordner liegen.
+CloudCompare unterscheidet intern zwischen Punktwolken und Meshes, was für die
+Wahl der verfügbaren Werkzeuge entscheidend ist und uns im nächsten Abschnitt
+noch beschäftigen wird.
+
+Im nächsten Abschnitt lernen wir die drei Hauptwerkzeuge der Bereinigung
+kennen: das Segment Tool für die manuelle Selektion, den SOR-Filter für die
+automatische Ausreißerentfernung und Laplacian Smoothing für die
+Oberflächenglättung.

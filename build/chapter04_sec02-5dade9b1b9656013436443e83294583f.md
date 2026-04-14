@@ -1,0 +1,265 @@
+---
+kernelspec:
+  name: python3
+  display_name: 'Python 3'
+---
+
+# 4.2 Welche Werkzeuge hat CloudCompare zum Bereinigen?
+
+Wir haben unser Mesh geladen und im 3D Viewer gesichtet. Die Diagnose steht:
+Hintergrundgeometrie, einzelne Ausreißer-Vertices und eine leicht wellige
+Oberfläche dort, wo das Original eigentlich glatt ist. Jetzt brauchen wir
+Werkzeuge, die diese drei Probleme gezielt beheben, ohne dabei echte
+Geometrie zu zerstören. CloudCompare bietet dafür drei Werkzeuge, die wir
+nacheinander einsetzen werden.
+
+## Lernziele
+
+```{admonition} Lernziele
+:class: attention
+* [ ] Sie können das Segment Tool für die manuelle Selektion und das Entfernen
+  von Hintergrundgeometrie einsetzen.
+* [ ] Sie können erklären, warum der SOR-Filter in CloudCompare eine
+  Punktwolke als Eingabe erwartet, und wissen, wie Sie ein Mesh dafür
+  vorbereiten.
+* [ ] Sie können den Statistical Outlier Removal (SOR)-Filter parametrisieren
+  und seine beiden Parameter k und den Standardabweichungs-Faktor begründet
+  wählen.
+* [ ] Sie können das Prinzip des Laplacian Smoothing erläutern und den Effekt
+  zu starker Glättung auf die Geometrie einschätzen.
+* [ ] Sie können entscheiden, wann manuelle Selektion und wann automatische
+  Filterung sinnvoller ist.
+```
+
+## Wann reicht automatisches Filtern, und wann müssen wir manuell eingreifen?
+
+Bevor wir die einzelnen Werkzeuge kennenlernen, hilft es, ein Grundprinzip
+zu verstehen: Nicht jedes Bereinigungsproblem lässt sich automatisch lösen.
+
+Hintergrundgeometrie, also die Tischplatte, auf der das Objekt stand, oder
+seitliche Fragmente des Raums, ist für einen Algorithmus schwer von echtem
+Objekt zu unterscheiden. Die Dreiecke sind geometrisch genauso gültig wie die
+Dreiecke des Objekts selbst. Nur wir als Menschen wissen, was zum Objekt
+gehört und was nicht. Hier führt kein Weg an manueller Selektion vorbei.
+
+Ausreißer-Vertices, also einzelne Punkte, die weit von der eigentlichen
+Oberfläche abweichen, entstehen durch Messrauschen und Reflexionen in der
+Tiefenkarte. Sie verteilen sich statistisch über das gesamte Mesh und lassen
+sich gut automatisch erkennen, weil sie sich von ihren Nachbarpunkten
+deutlich abheben. Hier ist ein statistischer Filter die richtige Wahl.
+
+Oberflächenrauschen, also kleine, hochfrequente Unebenheiten auf einer
+eigentlich glatten Fläche, liegt zwischen diesen beiden Extremen. Es ist zu
+verbreitet für manuelle Korrektur, aber zu fein für grobe Segmentierung. Hier
+setzt ein Glättungsfilter an.
+
+*Warum ist die Reihenfolge dieser drei Schritte wichtig?*
+
+Wir arbeiten immer vom Groben zum Feinen: zuerst Hintergrundgeometrie
+entfernen, dann Ausreißer filtern, dann glätten. Würden wir erst glätten,
+würde der Glättungsfilter auch die Hintergrundgeometrie verarbeiten und
+das Entfernen anschließend erschweren. Und ein SOR-Filter, der auf einem
+Mesh mit großen Hintergrundgeometrie-Fragmenten läuft, kann diese
+fälschlicherweise als "normale" Nachbarn werten und echte Ausreißer
+übersehen.
+
+## Wie funktioniert das Segment Tool?
+
+Das **Segment Tool** ist das manuellste und direkteste Werkzeug in
+CloudCompare. Es erlaubt uns, mit einem Polygon-Lasso im 3D Viewer einen
+Bereich des Meshes auszuwählen und ihn zu entfernen, in eine neue Entität
+auszulagern oder zu behalten.
+
+Wir aktivieren das Segment Tool über das Menü `Edit > Segment` oder über das
+entsprechende Icon in der Werkzeugleiste. Im 3D Viewer erscheint dann ein
+Fadenkreuz-Cursor. Mit Linksklicks zeichnen wir ein Polygon rund um den
+Bereich, den wir selektieren möchten. Ein Rechtsklick schließt das Polygon.
+Anschließend entscheiden wir mit zwei Schaltflächen:
+
+- **Segment In**: Nur der Bereich innerhalb des Polygons bleibt erhalten, alles
+  andere wird entfernt.
+- **Segment Out**: Der Bereich innerhalb des Polygons wird entfernt, alles
+  andere bleibt erhalten.
+
+Für das Entfernen von Hintergrundgeometrie verwenden wir in der Regel
+"Segment Out": Wir zeichnen ein Polygon um die Hintergrundgeometrie und
+entfernen sie. Das Ergebnis erscheint als neue Entität im DB Tree, das
+Original bleibt erhalten. Das ist ein wichtiger Sicherheitsmechanismus: Wir
+löschen nie direkt das Original, sondern arbeiten immer mit Kopien. So können
+wir jederzeit einen Schritt zurückgehen.
+
+```{admonition} Tipp
+:class: hint
+Das Segment Tool arbeitet immer auf der aktuellen Ansicht im 3D Viewer. Das
+Polygon, das wir zeichnen, ist eine 2D-Projektion auf den Bildschirm. Das
+bedeutet: Geometrie, die hinter dem sichtbaren Vordergrund liegt, aber in
+derselben Bildschirmprojektion, wird ebenfalls selektiert. Wir müssen das
+Objekt deshalb nach jeder Segmentierung drehen und prüfen, ob nicht
+versehentlich echte Geometrie mitentfernt wurde. Mehrere Segmentierungs-Passes
+aus verschiedenen Perspektiven sind besser als ein einziger grober Pass.
+```
+
+```{admonition} Mini-Übung
+:class: tip
+Überlegen Sie: Das Segment Tool erzeugt nach dem Trennen zwei neue Entitäten
+im DB Tree ("segmented" und "remaining"). Welche der beiden Entitäten enthält
+nach einem "Segment Out"-Schritt das bereinigte Objekt, und welche die
+entfernte Hintergrundgeometrie? Wie würden Sie die Entitäten benennen, um
+den Überblick zu behalten?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+Nach einem "Segment Out"-Schritt enthält die Entität mit dem Suffix
+"remaining" das bereinigte Objekt, also den Teil, der nicht im Polygon lag.
+Die Entität mit dem Suffix "segmented" enthält die entfernte Geometrie.
+
+Für den Überblick im DB Tree empfiehlt es sich, die Entitäten sofort nach
+dem Trennen umzubenennen, zum Beispiel in "objekt_bereinigt" und
+"hintergrund_entfernt". CloudCompare erlaubt das per Doppelklick auf den
+Namen im DB Tree. Wer mehrere Passes durchführt, sollte die Nummerierung
+einschließen, zum Beispiel "objekt_nach_pass1", um den Bearbeitungsstand
+nachvollziehbar zu halten.
+````
+
+## Was steckt hinter dem SOR-Filter?
+
+Am Ende von Abschnitt 4.1 haben wir darauf hingewiesen, dass der SOR-Filter
+in CloudCompare eine Punktwolke erwartet, kein Mesh. Bevor wir den Filter
+erklären, klären wir deshalb, wie wir unser Mesh als Punktwolke zugänglich
+machen.
+
+In CloudCompare sind die Vertices eines Meshes intern als Punktwolke
+gespeichert. Wir können sie sichtbar machen, indem wir im DB Tree auf den
+kleinen Pfeil links neben dem Mesh-Eintrag klicken. Es klappt ein
+untergeordneter Eintrag auf, der die Vertex-Punktwolke enthält. Wenn wir
+diese Punktwolke im DB Tree auswählen, können wir den SOR-Filter direkt auf
+die Vertices des Meshes anwenden. Das Mesh selbst wird dabei nicht
+aufgebrochen; die Dreiecksstruktur bleibt erhalten. Nur die Positionen der
+als Ausreißer erkannten Vertices werden aus der Punktwolke entfernt.
+
+*Aber wie entscheidet der Algorithmus, welche Punkte Ausreißer sind?*
+
+Der **Statistical Outlier Removal (SOR)-Filter** arbeitet in zwei Schritten.
+
+Zuerst berechnet er für jeden Punkt in der Wolke den mittleren Abstand zu
+seinen *k* nächsten Nachbarpunkten. Das ergibt für jeden Punkt einen
+individuellen Abstandswert. Über alle Punkte der Wolke hinweg wird daraus
+ein Mittelwert und eine Standardabweichung berechnet.
+
+Im zweiten Schritt markiert der Algorithmus alle Punkte als Ausreißer, deren
+mittlerer Nachbarabstand mehr als *n* Standardabweichungen vom globalen
+Mittelwert entfernt liegt. Diese Punkte werden entfernt.
+
+Zwei Parameter steuern dieses Verhalten:
+
+- **k** (Anzahl der Nachbarn): Ein kleines k macht den Filter sensitiv für
+  lokale Anomalien, reagiert aber auch stärker auf natürliches Rauschen. Ein
+  großes k mittelt über eine größere Nachbarschaft und übersieht dafür feine
+  Ausreißer. Typische Werte liegen zwischen 6 und 12.
+- **Standardabweichungs-Faktor (nSigma)**: Ein kleiner Wert (zum Beispiel 1.0)
+  entfernt auch Punkte, die nur moderat vom Mittelwert abweichen. Das kann
+  dazu führen, dass echte Oberflächenpunkte an Kanten oder Krümmungen
+  fälschlicherweise entfernt werden. Ein größerer Wert (zum Beispiel 2.0)
+  entfernt nur deutliche Ausreißer. Als Ausgangspunkt empfehlen wir k = 6
+  und nSigma = 2.0 und passen die Werte je nach Ergebnis an.
+
+```{admonition} Mini-Übung
+:class: tip
+Ein SOR-Filter mit k = 6 und nSigma = 1.0 entfernt aus einer Punktwolke mit
+50.000 Punkten insgesamt 3.200 Punkte, darunter aber offensichtlich auch
+Punkte auf der eigentlichen Objektoberfläche an stark gekrümmten Stellen.
+
+1. Welchen Parameter würden Sie als erstes anpassen, und in welche Richtung?
+2. Wie würden Sie überprüfen, ob die neue Einstellung besser ist?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+1. Als erstes würden wir nSigma erhöhen, zum Beispiel von 1.0 auf 2.0. Ein
+   höherer nSigma-Wert macht den Filter konservativer: Nur Punkte, die sehr
+   weit vom Mittelwert entfernt liegen, werden entfernt. Das reduziert die
+   Gefahr, echte Oberflächenpunkte an Kanten und Krümmungen irrtümlich zu
+   entfernen.
+
+2. Wir prüfen das Ergebnis visuell im 3D Viewer, indem wir das gefilterte
+   Mesh mit dem Original überlagern (beide im DB Tree sichtbar schalten) und
+   auf Stellen achten, an denen Geometrie verschwunden ist, die zum Objekt
+   gehört. Zusätzlich notieren wir die Zahl der entfernten Punkte: Ein
+   deutlicher Rückgang gegenüber der ersten Konfiguration zeigt, dass der
+   Filter jetzt selektiver arbeitet.
+````
+
+## Was bewirkt Laplacian Smoothing?
+
+Auch nach dem SOR-Filter verbleibt auf vielen Photogrammetrie-Meshes ein
+feines Oberflächenrauschen: Die Oberfläche sieht aus der Nähe leicht wellig
+aus, obwohl das Original glatt ist. Dieses Rauschen entsteht durch die
+unvermeidliche Messungenauigkeit der Photogrammetrie und lässt sich mit einem
+Glättungsfilter reduzieren.
+
+Stellen wir uns vor, wir halten eine Gummimembran über ein unebenes Relief
+und drücken sie sanft an. Die groben Strukturen bleiben erhalten, aber die
+feinen Unebenheiten werden ausgemittelt. Laplacian Smoothing funktioniert nach
+demselben Prinzip, nur mathematisch formuliert.
+
+**Laplacian Smoothing** verschiebt in jeder Iteration jeden Vertex in Richtung
+des Schwerpunkts seiner direkten Nachbar-Vertices. Wenn ein Vertex von vier
+Nachbarn umgeben ist, wird er nach jeder Iteration ein kleines Stück in
+Richtung ihres Mittelwerts verschoben. Hochfrequente Unebenheiten werden
+dadurch geglättet, weil ein Vertex, der weiter von seinen Nachbarn abweicht
+als der Durchschnitt, stärker verschoben wird.
+
+In CloudCompare wenden wir Laplacian Smoothing über `Edit > Mesh > Smooth
+(Laplacian)` an. Der wichtigste Parameter ist die Anzahl der Iterationen.
+
+*Aber wenn mehr Iterationen mehr Glättung bedeuten, warum wählen wir dann
+nicht einfach eine sehr hohe Zahl?*
+
+Weil Laplacian Smoothing nicht zwischen echten Geometriemerkmalen und
+Rauschen unterscheiden kann. Nach zu vielen Iterationen werden auch scharfe
+Kanten, Gravuren und charakteristische Krümmungen des Objekts weggeglättet.
+Ein Zahnrad verliert nach 20 Iterationen die scharfen Flanken seiner Zähne.
+Die Führungsrille der Kugelbahn wird nach zu vielen Iterationen breiter und
+flacher als sie eigentlich ist. In Kapitel 6 werden wir genau messen, wie
+viel Geometrie bei verschiedenen Iterationsanzahlen verloren geht. Als
+Ausgangspunkt empfehlen wir 2 bis 5 Iterationen und vergleichen das Ergebnis
+visuell mit dem Original, bevor wir weitere Iterationen anwenden.
+
+```{admonition} Mini-Übung
+:class: tip
+Erklären Sie in zwei bis drei Sätzen, warum Laplacian Smoothing bei einem
+Mesh mit sehr ungleichmäßiger Dreiecksverteilung (manche Bereiche sehr fein,
+andere sehr grob aufgelöst) unterschiedlich stark wirkt, je nachdem in
+welchem Bereich sich ein Vertex befindet.
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+In einem fein aufgelösten Bereich hat jeder Vertex viele nahe beieinander
+liegende Nachbarn. Eine Iteration verschiebt ihn deshalb nur um einen sehr
+kleinen Betrag in Richtung ihres Schwerpunkts. Im grob aufgelösten Bereich
+hat ein Vertex wenige, weiter entfernte Nachbarn. Dieselbe Iteration
+verschiebt ihn dort um einen deutlich größeren Betrag. Das bedeutet: Bei
+ungleichmäßiger Auflösung glättet Laplacian Smoothing die grob aufgelösten
+Bereiche stärker als die fein aufgelösten, was zu einer geometrisch
+inkonsistenten Veränderung des Meshes führen kann.
+````
+
+## Zusammenfassung und Ausblick
+
+In diesem Abschnitt haben wir die drei Werkzeuge der Mesh-Bereinigung
+kennengelernt. Das Segment Tool löst manuelle Aufgaben, bei denen nur wir als
+Menschen entscheiden können, was zum Objekt gehört und was nicht. Der
+SOR-Filter entfernt statistisch auffällige Ausreißer-Vertices automatisch,
+setzt aber voraus, dass wir das Mesh über seinen Vertex-Untereintrag im DB
+Tree als Punktwolke zugänglich machen. Laplacian Smoothing glättet
+hochfrequentes Rauschen, birgt aber das Risiko, bei zu vielen Iterationen
+echte Geometriemerkmale zu zerstören.
+
+Im nächsten Abschnitt wenden wir alle drei Werkzeuge in einer geführten
+Schritt-für-Schritt-Anleitung auf unser eigenes Mesh an und exportieren das
+bereinigte Ergebnis für die Registration in Kapitel 5.

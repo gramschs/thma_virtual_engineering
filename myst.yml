@@ -31,6 +31,12 @@ project:
         - file: chapter03/chapter03_sec02.md
         - file: chapter03/chapter03_sec03.md
         - file: chapter03/chapter03_sec04.md
+    - title: 4. Meshes bereinigen
+      children:
+        - file: chapter04/chapter04_sec01.md
+        - file: chapter04/chapter04_sec02.md
+        - file: chapter04/chapter04_sec03.md
+        - file: chapter04/chapter04_sec04.md
     
 site:
   template: book-theme

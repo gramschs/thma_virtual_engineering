@@ -4,7 +4,7 @@ kernelspec:
   display_name: 'Python 3'
 ---
 
-# Wie interpretiere ich das Meshroom-Ergebnis?
+# 3.2 Wie interpretiere ich das Meshroom-Ergebnis?
 
 Meshroom hat die Pipeline durchlaufen, und im 3D-Viewer erscheint das erste
 Modell der Kugelbahn. Doch was genau bedeuten die grünen und roten

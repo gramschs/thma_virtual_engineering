@@ -4,7 +4,7 @@ kernelspec:
   display_name: 'Python 3'
 ---
 
-# Was macht ein gutes Mesh aus?
+# 3.1 Was macht ein gutes Mesh aus?
 
 Meshroom hat die Pipeline abgeschlossen, das 3D-Modell der Kugelbahn liegt vor
 uns. Doch ein fertiges Mesh ist noch kein gutes Mesh: Lücken, Artefakte und

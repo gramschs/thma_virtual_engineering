@@ -4,7 +4,7 @@ kernelspec:
   display_name: 'Python 3'
 ---
 
-# Meshroom: Pipeline steuern und Ergebnis exportieren
+# 3.3 Meshroom: Pipeline steuern und Ergebnis exportieren
 
 Die Meshroom-Pipeline lässt sich weit mehr steuern als mit einem einzigen Klick
 auf "Start". An jedem Knoten können wir Parameter anpassen und einzelne

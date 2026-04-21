@@ -1,0 +1,291 @@
+---
+kernelspec:
+  name: python3
+  display_name: 'Python 3'
+---
+
+# 3.1 Was macht ein gutes Mesh aus?
+
+Meshroom hat die Pipeline abgeschlossen, das 3D-Modell der Kugelbahn liegt vor
+uns. Doch ein fertiges Mesh ist noch kein gutes Mesh: Lücken, Artefakte und
+fehlerhafte Geometrie können dazu führen, dass das Modell weder gedruckt noch
+simuliert werden kann. In diesem Abschnitt lernen wir, ein Mesh systematisch zu
+beurteilen. Wir klären, wie ein Mesh mathematisch aufgebaut ist, welche
+Qualitätskriterien in der Praxis zählen und welche Dateiformate für welchen
+Zweck geeignet sind.
+
+## Lernziele
+
+```{admonition} Lernziele
+:class: attention
+* [ ] Sie können die Bestandteile eines Meshes (Vertices, Edges, Faces) benennen
+  und deren Funktion erläutern.
+* [ ] Sie können mindestens vier Qualitätskriterien für ein Mesh nennen und auf
+  ein konkretes Beispiel anwenden.
+* [ ] Sie können erklären, was ein "Watertight Mesh" ist und warum es eine
+  Voraussetzung für 3D-Druck und Simulation ist.
+* [ ] Sie können die Dateiformate `.obj`, `.ply` und `.stl` unterscheiden und
+  situationsgerecht auswählen.
+```
+
+## Ein Mesh ist fertig, aber ist es gut?
+
+Stellen wir uns folgende Situation vor: Meshroom hat die Pipeline erfolgreich
+abgeschlossen, das 3D-Modell unserer Kugelbahn liegt vor uns, und auf den ersten
+Blick sieht es beeindruckend aus. Doch beim näheren Hinsehen fallen Dinge auf:
+Hier fehlt ein Stück an der Führungsschiene, dort ragen seltsame Zacken aus der
+Oberfläche, und die Unterseite des Modells besteht aus einem Flickwerk
+fehlerhafter Dreiecke.
+
+*Woran erkennen wir eigentlich, ob ein Mesh "gut" ist, und ab wann ist es gut
+genug für den nächsten Schritt?*
+
+In diesem Abschnitt legen wir die Grundlagen, um diese Frage systematisch zu
+beantworten. In Kapitel 2 haben wir gesehen, wie Meshroom aus Fotos zunächst
+eine Punktwolke und schließlich ein Mesh erzeugt. Jetzt lernen wir, dieses
+Ergebnis kritisch zu beurteilen.
+
+## Wie ist ein Mesh aufgebaut?
+
+Ein **Mesh** (auf Deutsch: Netz oder Gitter) ist eine Sammlung miteinander
+verbundener geometrischer Grundelemente. Die drei zentralen Bestandteile sind:
+
+- **Vertices** (Singular: Vertex): Punkte im dreidimensionalen Raum, definiert
+  durch ihre (x, y, z)-Koordinaten. Sie bilden das Skelett des Modells.
+- **Edges** (Kanten): Verbindungslinien zwischen je zwei Vertices. Sie
+  strukturieren die Oberfläche.
+- **Faces** (Flächen): Polygone, die von drei oder mehr Edges eingeschlossen
+  werden. Sie bilden die sichtbare Oberfläche des Modells.
+
+```{figure} pics/mesh_bestandteile.svg
+:alt: Schematisches Dreiecksnetz mit beschrifteten Bestandteilen: ein gelb
+hervorgehobenes Face, eine orangefarbene Edge und ein orangefarbener Vertex,
+jeweils mit Annotationspfeil.
+:align: center
+
+Darstellung der drei Grundelemente eines Dreiecksmeshes: Vertex (Punkt), Edge
+(Kante) und Face (Fläche). (Quelle: eigene Abbildung; Lizenz [CC BY-SA
+4.0](https://creativecommons.org/licenses/by-sa/4.0))
+```
+
+*Warum verwenden wir für Meshes fast immer Dreiecke, obwohl Vierecke intuitiver
+erscheinen?*
+
+Dreiecke sind die einfachste ebene Fläche: Drei Punkte legen immer genau eine
+Ebene fest. Ein Viereck hingegen kann "verbogen" sein, denn seine vier Eckpunkte
+müssen nicht in einer gemeinsamen Ebene liegen. Das macht Dreiecke rechnerisch
+eindeutig und robust, was besonders für Rendering-Algorithmen und für die
+Weiterverarbeitung in Simulationsprogrammen wichtig ist. Viele
+Softwareprogramme, darunter auch PrusaSlicer, erwarten deshalb ausschließlich
+**Dreiecksmeshes** (englisch: "Triangle Meshes").
+
+```{figure} pics/dreieck_vs_viereck.svg
+:alt: Zwei Panels nebeneinander: links ein flaches Dreieck auf einer
+Referenzebene, rechts ein Viereck, dessen vierter Vertex durch einen
+gestrichelten Höhenindikator als verwölbt markiert ist. :align: center
+
+Vergleich von Dreieck und Viereck als Mesh-Grundelement: Drei Punkte legen stets
+eine eindeutige Ebene fest; beim Viereck kann der vierte Punkt außerhalb der
+Ebene der übrigen drei liegen. (Quelle: eigene Abbildung; Lizenz [CC BY-SA
+4.0](https://creativecommons.org/licenses/by-sa/4.0))
+```
+
+```{admonition} Mini-Übung
+:class: tip
+Ein Würfel hat 8 Ecken (Vertices), 12 Kanten (Edges) und 6 Seiten. Wenn jede
+Seite in genau 2 Dreiecke aufgeteilt wird, entsteht ein trianguliertes Mesh.
+
+1. Wie viele Faces hat das resultierende Dreiecksmesh?
+2. Wie viele Edges hat es insgesamt? (Hinweis: Die Euler-Charakteristik für
+   zusammenhängende, geschlossene Netze mit Kugel-Topologie wie die Oberfläche
+   eines Würfels lautet V - E + F = 2.)
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+Ein Würfel hat 6 Seiten, jede wird in 2 Dreiecke aufgeteilt, also ergibt sich F
+= 12 Faces. Mit der Euler-Formel V - E + F = 2 folgt E = V + F - 2 = 8 + 12 - 2
+= 18 Edges.
+
+Probe: 8 - 18 + 12 = 2 ✓
+````
+
+Die gleiche Berechnung lässt sich direkt in Python ausdrücken. Der folgende Code
+zeigt, wie man die Euler-Formel als einfache Zuweisung formuliert und das
+Ergebnis automatisch überprüft:
+
+```{code-cell} python
+vertices = 8
+faces = 6 * 2          # 6 Seiten, je 2 Dreiecke
+
+# Euler-Formel: V - E + F = 2  ==>  E = V + F - 2
+edges = vertices + faces - 2
+
+print(f"Vertices: {vertices}")
+print(f"Faces:    {faces}")
+print(f"Edges:    {edges}")
+print(f"Probe (V - E + F): {vertices} - {edges} + {faces} = {vertices - edges + faces}")
+```
+
+## Was macht ein Mesh zu einem guten Mesh?
+
+Nicht jedes Mesh, das auf den ersten Blick überzeugend aussieht, ist auch für
+unsere Zwecke geeignet. Wir unterscheiden vier zentrale Qualitätskriterien.
+
+### Sind alle Flächen vorhanden?
+
+Ein vollständiges Mesh hat keine Lücken (englisch: "Holes"). In der Praxis
+entstehen Lücken fast immer dort, wo Meshroom zu wenige überlappende Fotos zur
+Verfügung hatte, zum Beispiel an der Unterseite der Kugelbahn oder in tiefen
+Rillen der Führungsschiene, die von mehreren Kamerapositionen aus schwer
+einsehbar sind.
+
+Lücken sind mehr als ein ästhetisches Problem: Für den 3D-Druck und für die
+physikalische Simulation brauchen wir ein **geschlossenes Volumen**. Ein Mesh
+mit Lücken beschreibt kein Volumen, sondern nur eine offene Oberfläche ohne
+eindeutiges Innen und Außen.
+
+### Wie fein ist das Mesh aufgelöst?
+
+*Mehr Dreiecke bedeuten mehr Detail, aber auch mehr Rechenaufwand. Wo liegt das
+Optimum?*
+
+Die Auflösung eines Meshes beschreibt, wie fein die Oberfläche approximiert
+wird. Ein Mesh mit vielen kleinen Dreiecken kann feine Strukturen wie die
+Führungsrillen der Kugelbahn gut abbilden. Ein Mesh mit wenigen großen Dreiecken
+sieht an gekrümmten Stellen kantig aus.
+
+Für unsere Kugelbahn sind dabei zwei Bereiche unterschiedlich kritisch: Die
+Führungsrillen, in denen die Kugel rollt, müssen hoch aufgelöst sein, damit die
+Simulation das Rollverhalten korrekt berechnen kann. Flache, unkritische
+Bereiche wie der Sockel können mit deutlich weniger Dreiecken auskommen. In den
+Kapiteln 4 bis 6 werden wir sehen, wie CloudCompare uns dabei hilft, die lokale
+Auflösung zu analysieren und gezielt zu vereinfachen.
+
+### Ist das Mesh wasserdicht?
+
+Ein **Watertight Mesh** (wasserdichtes Mesh) schließt ein vollständiges Volumen
+ohne Lücken ein, d.h. keine Randkanten (Kanten mit nur einer angrenzenden Fläche
+"Holes"), keine "Non-Manifold Edges" (Kanten mit mehr als zwei Flächen oder
+uneindeutiger Innen-Außen-Zuordnung) und idealerweise keine sich selbst
+schneidenden Flächen.
+
+Stellen wir uns vor, wir würden das Mesh wie einen Behälter mit Wasser füllen:
+Bei einem Watertight Mesh würde kein einziger Tropfen auslaufen. Diese
+Eigenschaft ist keine Kür, sondern eine harte Voraussetzung für den 3D-Druck:
+Der Slicer muss wissen, welche Seite des Meshes innen und welche außen ist, um
+die Druckbahnen korrekt zu berechnen. Ist das Mesh nicht wasserdicht, kann er
+dieses Urteil nicht zuverlässig treffen, und das Druckergebnis ist unbrauchbar.
+
+```{figure} pics/watertight_konzept.svg
+:alt: Drei Mesh-Querschnitte: links ein geschlossenes Rechteck mit
+Positivzeichen, mittig dasselbe Rechteck mit einer roten Lücke am unteren Rand
+und Wassertropfen darunter, rechts zwei Ellipsen in Figur-8-Form mit einem
+orangefarbenen Non-Manifold-Vertex und Fragezeichen in beiden Schleifen. :align:
+center
+
+Darstellung der drei zentralen Wasserdichtigkeitsprobleme: Watertight Mesh
+(geschlossene Kontur), Lücke (Hole) und Non-Manifold Edge (Figur-8-Querschnitt
+mit uneindeutigem Innen/Außen). (Quelle: eigene Abbildung; Lizenz [CC BY-SA
+4.0](https://creativecommons.org/licenses/by-sa/4.0))
+```
+
+### Was gehört nicht ins Mesh?
+
+Photogrammetrie-Software wie Meshroom rekonstruiert nicht nur das gewünschte
+Objekt, sondern alles, was auf den Fotos zu sehen war: den Untergrund,
+Reflexionen, versehentlich aufgenommene Hintergrundobjekte. Das Ergebnis sind
+häufig **Artefakte**, also fehlerhafte Geometrie:
+
+- **Schwimmende Fragmente**: Isolierte Dreiecks-Inseln ohne Bezug zum
+  eigentlichen Objekt.
+- **Hintergrundgeometrie**: Das Mesh des Tisches oder der Unterlage, auf der die
+  Kugelbahn stand.
+- **Spikes**: Einzelne Vertices, die weit aus der Oberfläche herausragen, weil
+  sie durch Messrauschen oder Reflexionen falsch positioniert wurden.
+
+Diese Artefakte müssen vor dem Druck oder der Simulation entfernt werden. Das
+ist die zentrale Aufgabe in den Kapiteln 4 bis 6 mit CloudCompare.
+
+```{admonition} Mini-Übung
+:class: tip
+Betrachten Sie die folgende Liste von Mesh-Eigenschaften. Ordnen Sie jede
+Eigenschaft einem der vier Qualitätskriterien zu (Vollständigkeit, Auflösung,
+Wasserdichtheit, Artefaktfreiheit):
+
+1. Das Mesh enthält eine zusätzliche flache Fläche, die offensichtlich der Tisch
+   unter der Kugelbahn ist.
+2. Die Führungsrille der Kugelbahn sieht im 3D-Viewer glatt aus, zeigt beim
+   Zoomen aber deutlich sichtbare Treppenstufen.
+3. PrusaSlicer gibt die Warnung aus: "Mesh is not manifold."
+4. An der Unterseite der Kugelbahn fehlt ein kreisrundes Stück.
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+1. Artefaktfreiheit (Hintergrundgeometrie)
+2. Auflösung (zu geringe Dreiecksanzahl in der Rille)
+3. Wasserdichtheit (Non-Manifold Edges oder sich selbst überschneidende Flächen
+   führen zu Problemen bei der Wasserdichtheit)
+4. Vollständigkeit (Lücke in der Oberfläche)
+````
+
+## Welche Dateiformate gibt es, und wofür werden sie verwendet?
+
+Meshes werden in verschiedenen Dateiformaten gespeichert. Für unseren Workflow
+sind drei Formate relevant:
+
+| Format | Gespeicherter Inhalt | Stärke | Typischer Einsatz |
+| ------ | -------------------- | ------ | ----------------- |
+| `.obj` | Geometrie + Texturkoordinaten + Material-Referenz (`.mtl`) | Weit verbreitet, mit Textur | Austausch zwischen Tools, CloudCompare |
+| `.ply` | Geometrie + Farbe / Normalenvektoren direkt im File | Flexibel, kompakt, ASCII oder Binär | Punktwolken, wissenschaftliche Pipelines |
+| `.stl` | Nur Geometrie (keine Textur, keine Farbe) | Maximale Kompatibilität | 3D-Druck (PrusaSlicer) |
+
+*Warum exportieren wir für den 3D-Druck ausgerechnet das "ärmste" Format, das
+`.stl`, das weder Farbe noch Textur kennt?*
+
+Weil für den 3D-Druck Farbe schlicht irrelevant ist. Der Slicer braucht
+ausschließlich die Geometrie, also die Positionen der Vertices und die Anordnung
+der Faces, um die Druckbahnen zu berechnen. Das `.stl`-Format ist dafür so
+simpel und breit unterstützt, dass es sich als Industriestandard für den
+3D-Druck durchgesetzt hat. Für die Weiterverarbeitung in CloudCompare
+exportieren wir hingegen `.obj` oder `.ply`, weil wir dort auch Farb- und
+Texturinformationen analysieren wollen.
+
+```{admonition} Mini-Übung
+:class: tip
+Eine Kommilitonin möchte das Meshroom-Ergebnis der Kugelbahn direkt an einen
+Online-3D-Druckservice schicken, der ausschließlich `.stl`-Dateien akzeptiert.
+
+1. Welche Information geht beim Konvertieren von `.obj` nach `.stl` verloren?
+2. Ist dieser Verlust für den genannten Anwendungsfall ein Problem?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+1. Beim Konvertieren von `.obj` nach `.stl` gehen Texturkoordinaten und
+   Farbinformationen verloren. Das `.stl`-Format speichert ausschließlich die
+   Geometrie (Vertices und Faces).
+
+2. Für den 3D-Druck ist das kein Problem: Der Slicer berechnet die Druckbahnen
+   allein aus der Geometrie. Die Textur würde beim Druck ohnehin nicht
+   übertragen. Für eine anschließende Qualitätsanalyse in CloudCompare würde der
+   Verlust der Farbinformation jedoch stören. Dort sollte man das `.obj`-Format
+   bevorzugen.
+````
+
+## Zusammenfassung und Ausblick
+
+In diesem Abschnitt haben wir die Grundbegriffe der Mesh-Qualität kennengelernt.
+Ein Mesh besteht aus Vertices, Edges und Faces, wobei Dreiecke als Grundelement
+bevorzugt werden. Vier Kriterien bestimmen die Qualität: Vollständigkeit,
+Auflösung, Wasserdichtheit und Artefaktfreiheit. Für den Austausch zwischen
+Tools verwenden wir `.obj` und `.ply`; für den 3D-Druck ist `.stl` der Standard.
+
+Im nächsten Abschnitt wenden wir dieses Wissen direkt auf unser
+Meshroom-Ergebnis an: Wir lernen, die Ausgabe der Pipeline systematisch zu
+interpretieren und typische Fehlermuster zu erkennen, bevor wir in Kapitel 4 mit
+CloudCompare in die eigentliche Bereinigung einsteigen.

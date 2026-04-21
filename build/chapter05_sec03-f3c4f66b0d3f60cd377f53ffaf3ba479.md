@@ -1,0 +1,396 @@
+---
+kernelspec:
+  name: python3
+  display_name: 'Python 3'
+---
+
+# 5.3 Zwei Scans ausrichten: Schritt für Schritt
+
+Theorie und Praxis liegen in der Photogrammetrie selten weit auseinander. Wir
+haben in den letzten beiden Abschnitten verstanden, warum Registration
+notwendig ist, wie ICP intern funktioniert und wann er versagt. Jetzt wenden
+wir all das an. Das Ziel dieses Abschnitts: Zwei bereinigte Meshes unserer
+Kugelbahn, die aktuell in verschiedenen Koordinatensystemen liegen, werden am
+Ende übereinanderliegen. Das Ergebnis dokumentieren wir mit einem RMS-Fehler
+und exportieren es als Datei für die Abweichungsanalyse in Kapitel 6.
+
+```{admonition} Hinweis zur Vorbereitung
+:class: error
+:class: dropdown
+Für diesen Abschnitt benötigen wir zwei unabhängige bereinigte Meshes desselben
+Objekts. Diese können zum Beispiel aus einer der folgenden Varianten stammen:
+
+* **Zwei Meshroom-Rekonstruktionen:** Wenn wir nur einen Fotosatz haben,
+  teilen wir die Fotos zufällig in zwei Hälften auf und rekonstruieren beide
+  Teilmengen separat in Meshroom, wie in Kapitel 2 beschrieben. Das Ergebnis
+  ist bewusst schlechter als das Gesamtmodell und macht den Nutzen der
+  Registration besonders deutlich.
+* **Zwei Scaniverse-Scans:** Wir scannen dasselbe Objekt in Scaniverse in
+  zwei getrennten Sessions (z.B. unterschiedliche Kamerapfade) und exportieren
+  beide Scans als 3D-Mesh (z.B. `.ply` oder `.obj`).
+* **Kombination:** Wir verwenden einen Scan von Meshroom als erstes Mesh und einen
+  eigenen Scaniverse-Scan als zweites Mesh.
+
+In allen Fällen sollten beide Meshes bereits bereinigt sein, wie in Kapitel 4
+gezeigt. Beim Export und Import achten wir auf ein konsistentes
+Längeneinheitensystem: Meshroom-Meshes liegen in der Regel in Millimetern vor,
+Scaniverse arbeitet häufig in Metern (ggf. in CloudCompare mit `Edit >
+Multiply/Scale` um den Faktor 1000 skalieren). Idealerweise liegen beide
+Meshes als `.ply`-Dateien (oder äquivalente Formate) vor und haben eine
+vergleichbare Auflösung.
+```
+
+## Lernziele
+
+```{admonition} Lernziele
+:class: attention
+* [ ] Sie können zwei Meshes desselben Objekts in CloudCompare laden und im
+  DB Tree strukturiert organisieren.
+* [ ] Sie können eine manuelle Vorausrichtung mit dem "Align (point pairs
+  picking)"-Werkzeug durchführen.
+* [ ] Sie können eine feine ICP-Registration mit begründeten Parametern
+  durchführen und den RMS-Fehler ablesen.
+* [ ] Sie können das Registrationsergebnis visuell und quantitativ bewerten
+  und das ausgerichtete Mesh für die Abweichungsanalyse in Kapitel 6
+  exportieren.
+```
+
+## Schritt 1: Beide Meshes laden und im DB Tree organisieren
+
+Wir starten CloudCompare und öffnen das erste bereinigte Mesh über `File >
+Open`. Im Import-Dialog wählen wir Millimeter als Einheit, wie wir es in
+Abschnitt 4.1 gelernt haben. Das Mesh erscheint im DB Tree und im 3D Viewer.
+Dann öffnen wir das zweite Mesh ebenfalls über `File > Open`, ohne CloudCompare
+zwischenzeitlich zu schließen. Beide Meshes erscheinen jetzt als separate
+Einträge im DB Tree.
+
+Bevor wir irgendetwas tun, organisieren wir den DB Tree. Wir benennen die
+Meshes durch Doppelklick auf den Namen um: Das erste Mesh nennen wir `scan_A`,
+das zweite `scan_B`. Zusätzlich vergeben wir im Properties Panel eine
+Anzeigefarbe, damit wir im 3D Viewer auf einen Blick sehen, welches Mesh
+welches ist. `scan_A` erhält zum Beispiel Blau, `scan_B` Orange. Diese
+Farbunterscheidung ist besonders wertvoll, wenn wir die Meshes nach der
+Vorausrichtung überlagert betrachten.
+
+```{admonition} Tipp
+:class: note
+Wenn die Meshes nach dem Laden überhaupt nicht im 3D Viewer sichtbar sind oder
+sehr weit voneinander entfernt liegen, hilft ein Klick auf das Würfel-Icon in
+der Werkzeugleiste ("Fit all"): CloudCompare zoomt so, dass alle geladenen
+Objekte sichtbar sind. Falls die Meshes dabei extrem weit voneinander entfernt
+erscheinen, zum Beispiel mehrere Tausend Einheiten, ist wahrscheinlich bei
+einem der beiden Meshes eine falsche Einheit beim Import gewählt worden. In
+diesem Fall den Import wiederholen und die Einheit korrigieren.
+```
+
+Im Properties Panel lesen wir für beide Meshes die Vertices- und Faces-Zahlen
+ab und notieren sie. Wir erwarten beide Werte in einer ähnlichen
+Größenordnung, weil wir dasselbe Objekt mit ähnlicher Aufnahmedichte
+rekonstruiert haben. Eine Faktor-3-Abweichung oder mehr deutet auf ein
+Problem in der Meshroom-Rekonstruktion hin. In Abschnitt 5.2 haben wir
+erklärt, warum stark unterschiedliche Auflösungen die ICP-Registration
+verfälschen können.
+
+```{admonition} Mini-Übung
+:class: tip
+Im DB Tree erscheinen nach dem Laden folgende Einträge:
+
+- `scan_A`: 834.211 Vertices, 1.668.340 Faces
+- `scan_B`: 79.614 Vertices, 159.012 Faces
+
+Was schließen Sie daraus? Was würden Sie als nächsten Schritt tun, bevor Sie
+mit der Registration beginnen?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+Der Faktor etwa 10 zwischen den Vertex-Zahlen ist ein deutliches Warnsignal.
+Er deutet darauf hin, dass eine der beiden Meshroom-Rekonstruktionen deutlich
+weniger Fotos oder ungünstigere Parameter hatte als die andere. Wie wir in
+Abschnitt 5.2 gesehen haben, können stark unterschiedliche Punktdichten die
+ICP-Registration durch asymmetrische Korrespondenzen verfälschen.
+
+Als nächsten Schritt würden wir `scan_A` vereinfachen, bis die Punktzahl
+näher an `scan_B` liegt. In CloudCompare: `scan_A` im DB Tree auswählen,
+dann `Edit > Subsample`. Wir wählen als Modus "space" (minimaler
+Punktabstand) und geben einen Wert ein, der die Punktzahl auf etwa das
+Doppelte von `scan_B` reduziert. Das vereinfachte Mesh benennen wir
+`scan_A_reduziert` und verwenden es für alle weiteren Schritte.
+````
+
+## Schritt 2: Manuelle Vorausrichtung mit Referenzpunkten
+
+Die manuelle Vorausrichtung ist der wichtigste Schritt der gesamten Registration.
+Eine gute Vorausrichtung entscheidet darüber, ob ICP danach in das globale
+Minimum konvergiert oder in einem lokalen Minimum stecken bleibt.
+
+Wir wählen **beide** Meshes im DB Tree aus: Linksklick auf `scan_A`, dann
+Shift-Klick auf `scan_B`. Anschließend navigieren wir zu `Tools > Registration >
+Align (point pairs picking)`. CloudCompare öffnet jetzt zwei Unterfenster:
+links das Referenz-Mesh (`scan_A`), rechts das zu bewegende Mesh (`scan_B`).
+
+*Welche Punkte wählen wir als Referenzpunkte?*
+
+Gute Referenzpunkte erfüllen drei Kriterien: Sie sind in beiden Meshes klar
+erkennbar, sie liegen an geometrisch eindeutigen Stellen (Ecken, Kanten,
+Bohrungen, keine flachen Bereiche), und sie sind gut über das gesamte Objekt
+verteilt, nicht alle auf derselben Seite oder im selben Bereich. Für unsere
+Kugelbahn eignen sich besonders die Endpunkte der Führungsrille, markante
+Wendepunkte der Bahn und die Aufhängungsbohrungen. Flache Bereiche wie eine
+glatte Seitenwand sind ungeeignet, weil wir dort keinen eindeutigen Punkt
+setzen können.
+
+Wir setzen den ersten Referenzpunkt, indem wir im linken Fenster (Referenz)
+auf einen markanten Punkt doppelklicken. Ein grünes Kreuz erscheint an dieser
+Stelle. Dann klicken wir im rechten Fenster (zu bewegendes Mesh) auf den
+geometrisch entsprechenden Punkt. CloudCompare verbindet beide Punkte als Paar
+und zeigt das Paar in der Punktliste an.
+
+Wir wiederholen diesen Vorgang, bis wir mindestens fünf Punktpaare gesetzt
+haben. Dann klicken wir auf "Align". CloudCompare berechnet die
+Starrkörpertransformation aus den Punktpaaren und wendet sie auf `scan_B` an.
+Im 3D Viewer sehen wir, wie sich `scan_B` auf `scan_A` zu bewegt. Das Ergebnis
+ist selten perfekt, aber die Oberflächen sollten grob übereinanderliegen.
+
+```{admonition} Tipp
+:class: note
+Wenn die Vorausrichtung nach dem Klick auf "Align" offensichtlich falsch ist,
+liegt meistens ein Fehler bei einem einzelnen Punktpaar vor. Wir prüfen die
+Punktliste unten im Dialog: CloudCompare zeigt für jedes Paar das Residuum an,
+also wie weit der Punkt nach der berechneten Transformation noch von seinem
+Korrespondenzpunkt entfernt ist. Paare mit einem deutlich höheren Residuum als
+alle anderen sind verdächtig. Wir löschen sie und setzen neue Punkte an
+geometrisch eindeutigeren Stellen.
+```
+
+```{admonition} Mini-Übung
+:class: tip
+Wir führen eine Vorausrichtung mit sieben Punktpaaren durch. Nach dem Klick
+auf "Align" meldet CloudCompare einen initialen RMS-Fehler von 14.8 mm. Wir
+bemerken in der Residuumliste, dass ein Punktpaar ein Residuum von 11.3 mm
+hat, während alle anderen unter 2 mm liegen. Wir löschen dieses Paar und
+klicken erneut auf "Align". Der initiale RMS-Fehler sinkt auf 4.1 mm.
+
+Erklären Sie, warum ein einzelnes falsches Punktpaar den Gesamtfehler so
+stark erhöhen kann.
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+Die Ausgleichsrechnung, die CloudCompare für die Vorausrichtung verwendet,
+gewichtet alle Punktpaare gleich. Ein einzelnes stark falsches Paar zieht die
+berechnete Transformation in die falsche Richtung, weil der Algorithmus
+versucht, den Fehler dieses Paares zusammen mit allen anderen zu minimieren.
+Das Ergebnis ist eine Transformation, die für kein einzelnes Paar gut passt,
+aber im Durchschnitt über alle Paare (einschließlich des Ausreißers) einen
+möglichst kleinen Fehler macht.
+
+Dieses Verhalten ist vergleichbar mit einer linearen Regression, bei der ein
+einzelner Ausreißerpunkt die gesamte Regressionslinie deutlich verschieben
+kann. Nach der Entfernung des Ausreißers kann die Ausgleichsrechnung die
+verbleibenden sechs korrekten Paare viel besser treffen, und die Transformation
+wird substanziell besser.
+````
+
+## Schritt 3: Feine Ausrichtung mit ICP
+
+Nach der Vorausrichtung liegt `scan_B` grob auf `scan_A`. Jetzt übergeben wir
+an ICP. Wir wählen beide Meshes im DB Tree aus und navigieren zu `Tools >
+Registration > Fine Registration (ICP)`.
+
+Im ICP-Dialog überprüfen wir zuerst, welches Mesh als Referenz ("Reference") und
+welches als zu bewegendes Mesh ("To align") eingetragen ist. Wir wollen
+`scan_A` als festes Referenz-Mesh und `scan_B` als bewegtes Mesh. Falls die
+Zuweisung umgekehrt ist, korrigieren wir mit der "Swap"-Schaltfläche.
+
+Dann stellen wir die Parameter ein:
+
+**Max. Anzahl der Iterationen:** 200. Das ist ein komfortabler Wert, der für
+die meisten Photogrammetrie-Meshes ausreicht. ICP bricht früher ab, wenn das
+Konvergenzkriterium erfüllt ist.
+
+**Overlap ratio:** Wenn die beiden Scans nicht exakt dieselbe Oberfläche
+abdecken, geben wir hier den geschätzten Überlappungsanteil ein. Wir beginnen
+mit 0.9 (90 Prozent Überlappung). Falls ICP danach nicht konvergiert oder der
+finale RMS-Fehler hoch bleibt, reduzieren wir auf 0.8 und wiederholen.
+
+**Convergence criterion:** Wir lassen den Standardwert stehen (typischerweise
+$1 \times 10^{-5}$). Dieser Wert gibt an, unterhalb welcher RMS-Änderung pro
+Iteration ICP als konvergiert gilt.
+
+Wir bestätigen mit "OK" und beobachten die Konsole unten in CloudCompare.
+CloudCompare gibt nach jeder Iteration den aktuellen RMS-Fehler aus. Wir sehen
+den typischen Verlauf aus Abschnitt 5.2: ein steiler Abfall zu Beginn, dann eine
+sich abflachende Kurve.
+
+```{dropdown} Video "CloudCompare Registration Tutorial" (offizielle Dokumentation)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/VIDEO_ID_HIER_EINTRAGEN"
+title="YouTube video player" frameborder="0" allow="accelerometer; autoplay;
+clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+allowfullscreen></iframe>
+```
+
+## Schritt 4: RMS-Fehler ablesen und bewerten
+
+Nach dem Ende der ICP-Registration zeigt CloudCompare den finalen RMS-Fehler
+in einem Dialogfenster an und schreibt ihn zusätzlich in die Konsole. Wir
+notieren diesen Wert zusammen mit dem initialen RMS-Fehler nach der
+Vorausrichtung und der Anzahl der Iterationen bis zur Konvergenz.
+
+*Was ist ein akzeptables Ergebnis für unsere Kugelbahn?*
+
+Die Kugelbahn hat eine charakteristische Länge von etwa 400 mm. Als Faustregel
+gilt in der Photogrammetrie: Ein RMS-Fehler unter 0.5 mm (also unter 0.125
+Prozent der charakteristischen Länge) ist sehr gut. Zwischen 0.5 und 1.5 mm
+ist akzeptabel. Über 2 mm sollten wir die Vorausrichtung wiederholen oder den
+Überlappungsgrad im ICP-Dialog anpassen.
+
+Wir tragen die Ergebnisse in einer Dokumentationstabelle fest, die wir für die
+Übungen in Abschnitt 5.4 benötigen werden:
+
+| Kennzahl | Wert |
+| -------- | ---- |
+| Initialer RMS nach Vorausrichtung (mm) | ... |
+| Finaler RMS nach ICP (mm) | ... |
+| Iterationen bis Konvergenz | ... |
+| Overlap ratio (Parameter) | ... |
+| Visuelle Prüfung bestanden | Ja / Nein |
+
+````{admonition} Mini-Übung
+:class: tip
+Nach dem ICP-Lauf zeigt CloudCompare in der Konsole:
+
+```code
+[Fine Registration (ICP)]
+Final RMS: 0.312 mm
+Number of iterations: 43
+```
+
+Wir betrachten anschließend den 3D Viewer und stellen fest, dass die beiden
+Meshes an einer Seite der Kugelbahn sehr gut übereinanderliegen, an der
+gegenüberliegenden Seite aber eine sichtbare Versetzung von etwa 1 mm besteht.
+
+Erklären Sie, warum ein globaler RMS-Fehler von 0.312 mm und eine lokal
+sichtbare Versetzung von 1 mm gleichzeitig auftreten können.
+````
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+Der RMS-Fehler ist ein gewichteter Mittelwert über alle Korrespondenzpaare der
+gesamten Oberfläche. Er mittelt die Abstände über alle Bereiche, die in beiden
+Meshes vorhanden sind. Wenn 85 Prozent der Paare Abstände unter 0.2 mm haben,
+können 15 Prozent durchaus Abstände von 1 mm haben, und der globale
+RMS-Fehler liegt trotzdem unter 0.5 mm, weil der quadratische Mittelwert die
+kleinen Abstände deutlich stärker gewichtet als die wenigen großen.
+
+Die sichtbare Versetzung an einer Seite zeigt, dass ICP die Transformation auf
+die Bereiche mit den meisten und engsten Korrespondenzpaaren optimiert hat,
+dabei aber einen weniger dicht abgedeckten Bereich vernachlässigt hat. Für die
+Abweichungsanalyse in Kapitel 6 ist diese Information entscheidend: Wir werden
+dort sehen, ob die Abweichungen systematisch über eine bestimmte Region
+verteilt sind oder zufällig über die gesamte Oberfläche streuen.
+````
+
+## Schritt 5: Ausgerichtetes Mesh exportieren und für Kapitel 6 vorbereiten
+
+Wir exportieren `scan_B` (das bewegte, jetzt ausgerichtete Mesh) als
+`.ply`-Datei. Im DB Tree wählen wir `scan_B` aus und navigieren zu
+`File > Save`. Als Format wählen wir `.ply` (Binary), als Dateiname
+`scan_B_registriert.ply`.
+
+Anschließend führen wir den folgenden Python-Check durch, der die wichtigsten
+Kennzahlen beider Meshes gegenüberstellt:
+
+```python
+import trimesh
+import numpy as np
+
+SCAN_A_PATH = "scan_A.ply"               # Pfade anpassen
+SCAN_B_PATH = "scan_B_registriert.ply"
+
+mesh_a = trimesh.load(SCAN_A_PATH)
+mesh_b = trimesh.load(SCAN_B_PATH)
+
+for name, mesh in [("scan_A (Referenz)", mesh_a),
+                   ("scan_B (registriert)", mesh_b)]:
+    bb = mesh.bounding_box.extents.round(1)
+    print(f"{name}")
+    print(f"  Vertices:        {len(mesh.vertices)}")
+    print(f"  Faces:           {len(mesh.faces)}")
+    print(f"  Boundingbox(mm): {bb[0]:.1f} x {bb[1]:.1f} x {bb[2]:.1f}")
+    print()
+```
+
+Nach der Registration sollten die Boundingboxen beider Meshes nahezu identisch
+sein. Eine Abweichung in einer Achse von mehr als 5 mm ist ein Hinweis darauf,
+dass die Registration nicht vollständig konvergiert ist oder dass ein
+Maßstabsfehler beim Import vorliegt.
+
+```{admonition} Checkliste: Registration abgeschlossen
+:class: note
+* **DB Tree organisiert:** Beide Meshes sind benannt und farblich unterschieden.
+* **Initialer RMS notiert:** Der Wert nach der Vorausrichtung liegt unter 10 mm.
+* **ICP konvergiert:** Der finale RMS-Fehler ist deutlich kleiner als der
+  initiale RMS nach der Vorausrichtung.
+* **RMS-Fehler plausibel:** Für die Kugelbahn liegt der finale RMS unter 1.5 mm.
+* **Visuelle Prüfung bestanden:** Im 3D Viewer liegen beide Meshes mit dem
+  bloßen Auge erkennbar übereinander, ohne sichtbare Gesamtversetzung.
+* **Export abgeschlossen:** `scan_B_registriert.ply` liegt im Projektordner.
+* **Python-Check bestätigt:** Die Boundingboxen beider Meshes stimmen auf
+  unter 5 mm überein.
+```
+
+````{admonition} Mini-Übung
+:class: tip
+Nach dem Python-Check erhalten wir folgende Ausgabe:
+
+```
+scan_A (Referenz)
+  Vertices:        412.388
+  Faces:           824.601
+  Boundingbox(mm): 398.2 x 87.3 x 41.6
+
+scan_B (registriert)
+  Vertices:        388.743
+  Faces:           777.381
+  Boundingbox(mm): 401.5 x 84.1 x 45.2
+```
+
+Bewerten Sie das Ergebnis anhand der Checkliste. Welche Werte geben Ihnen
+Vertrauen, welche mahnen zur Vorsicht?
+````
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+Vertrauenswürdige Werte: Die Vertices- und Faces-Zahlen liegen nah beieinander
+(Faktor etwa 1.06), was bedeutet, dass beide Meshes ähnliche Auflösungen haben.
+Die Boundingboxen sind in der Größenordnung sehr ähnlich. Die lange Achse
+(398.2 vs. 401.5 mm) weicht um etwa 3.3 mm ab; das liegt innerhalb des
+akzeptablen Bereichs von 5 mm.
+
+Mahnende Werte: Die zweite Achse weicht um 3.2 mm ab (87.3 vs. 84.1 mm), die
+dritte Achse um 3.6 mm (41.6 vs. 45.2 mm). Beides liegt noch unter dem 5-mm-
+Schwellenwert, ist aber nicht vernachlässigbar. In Kapitel 6 werden wir die
+Abweichungsanalyse durchführen und sehen, ob diese Unterschiede auf bestimmte
+Bereiche konzentriert sind oder gleichmäßig über die gesamte Oberfläche
+verteilt sind.
+````
+
+## Zusammenfassung und Ausblick
+
+In diesem Abschnitt haben wir die vollständige Registration in CloudCompare
+Schritt für Schritt durchgeführt: Meshes laden und im DB Tree organisieren,
+manuelle Vorausrichtung mit dem "Align (point pairs picking)"-Werkzeug, feine
+ICP-Registration mit dokumentierten Parametern, RMS-Fehler ablesen und
+bewerten, Export und Python-Check.
+
+In Kapitel 6 werden wir das registrierte Ergebnis für die Abweichungsanalyse
+nutzen. Wir werden messen, wie weit die Oberflächen der beiden Meshes an jedem
+Punkt voneinander abweichen, und diese Abweichungen als farbkodierte Karte auf
+dem Mesh darstellen. Dort werden wir erstmals quantitativ sehen, wie gut unsere
+Photogrammetrie-Aufnahmen geometrisch übereinstimmen und wo die größten
+Unsicherheiten in unserem Modell liegen.

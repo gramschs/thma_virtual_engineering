@@ -4,7 +4,7 @@ kernelspec:
   display_name: 'Python 3'
 ---
 
-# 5.1 Was ist Registration, und warum brauchen wir sie?
+# 5.1 Was ist Registrierung, und warum brauchen wir sie?
 
 Wir haben in Kapitel 4 ein bereinigtes Mesh unserer Kugelbahn erarbeitet: die
 Hintergrundgeometrie ist entfernt, Ausreißer-Vertices sind gefiltert, und die
@@ -18,7 +18,7 @@ miteinander zu tun. Beide stellen dieselbe Kugelbahn dar, aber in vollständig
 verschiedenen Koordinatensystemen.
 
 Das ist kein Fehler in unserem Workflow, sondern ein strukturelles Merkmal der
-Photogrammetrie. **Registration** ist das Verfahren, das zwei unabhängige
+Photogrammetrie. **Registrierung** ist das Verfahren, das zwei unabhängige
 Koordinatensysteme aufeinander abstimmt und damit die Voraussetzung für jeden
 quantitativen Vergleich schafft.
 
@@ -64,7 +64,7 @@ denselben absoluten Ort haben, keinen GPS-Stempel und keine gemeinsame
 Kalibrierungsmarke auf dem Objekt. Die einzige Information, die Meshroom hat,
 ist die relative Lage der Kameras zueinander innerhalb einer Session.
 
-Genau hier setzt die Registration an. Wir haben zwei Meshes desselben Objekts,
+Genau hier setzt die Registrierung an. Wir haben zwei Meshes desselben Objekts,
 jedes in seinem eigenen Koordinatensystem. Das Ziel ist, eine Transformation zu
 finden, die eines der beiden Meshes so verschiebt und dreht, dass beide maximal
 übereinanderliegen. Die Transformation, die wir dabei suchen, heißt
@@ -101,7 +101,7 @@ Boundingbox von $122 \times 46 \times 34$ mm.
    perfekt übereinandergebracht werden. Das ist der Normalfall: Zwei
    unabhängige Photogrammetrie-Rekonstruktionen stimmen nie exakt überein,
    weil Rauschen, unterschiedliche Kamerawinkel und Meshroom-Parameter immer
-   kleine Unterschiede erzeugen. Registration minimiert diese Abweichungen,
+   kleine Unterschiede erzeugen. Registrierung minimiert diese Abweichungen,
    eliminiert sie aber nicht vollständig.
 
 2. Die Unterschiede entstehen durch Messrauschen der Photogrammetrie, durch
@@ -115,7 +115,7 @@ Boundingbox von $122 \times 46 \times 34$ mm.
 
 ## Grobe Vorausrichtung oder feiner Algorithmus: Wann brauchen wir was?
 
-Registration ist keine einzelne Operation, sondern eine zweistufige Pipeline:
+Registrierung ist keine einzelne Operation, sondern eine zweistufige Pipeline:
 eine grobe Vorausrichtung, gefolgt von einer feinen automatischen Ausrichtung.
 Warum zwei Stufen?
 
@@ -140,7 +140,7 @@ Die **feine Ausrichtung** erledigt dann der ICP-Algorithmus automatisch. Er
 nimmt die grob ausgerichteten Meshes und optimiert so lange, bis der Abstand
 zwischen den übereinstimmenden Oberflächen minimal ist. Das Ergebnis drücken wir
 als **RMS-Fehler** (Root Mean Square error) aus: eine einzige Zahl in
-Millimetern, die angibt, wie gut die beiden Meshes nach der Registration
+Millimetern, die angibt, wie gut die beiden Meshes nach der Registrierung
 übereinstimmen. In Abschnitt 5.2 werden wir diesen Wert im Detail verstehen.
 
 ```{admonition} Mini-Übung
@@ -205,7 +205,7 @@ ICP sucht in jedem Iterationsschritt für jeden Punkt des bewegten Meshes den
 nächsten Nachbarpunkt im festen Referenz-Mesh. Was passiert, wenn das Objekt
 eine rotationssymmetrische Form hat, zum Beispiel einen Zylinder?
 
-Erklären Sie, warum Registration für solche Formen besonders fehleranfällig
+Erklären Sie, warum Registrierung für solche Formen besonders fehleranfällig
 ist, und überlegen Sie, wie man das Problem praktisch umgehen könnte.
 ```
 
@@ -231,9 +231,9 @@ nicht rotationssymmetrische Landmarken sind.
 
 ## Zusammenfassung und Ausblick
 
-In diesem Abschnitt haben wir die Grundlage der Registration erarbeitet. Jede
+In diesem Abschnitt haben wir die Grundlage der Registrierung erarbeitet. Jede
 Photogrammetrie-Rekonstruktion mit Meshroom erzeugt ihr eigenes willkürliches
-Koordinatensystem. Registration findet die Starrkörpertransformation, die zwei
+Koordinatensystem. Registrierung findet die Starrkörpertransformation, die zwei
 Meshes desselben Objekts maximal zur Deckung bringt. Das gelingt in zwei Stufen:
 einer manuellen groben Vorausrichtung über Referenzpunktpaare und einer feinen
 automatischen Optimierung durch den ICP-Algorithmus. ICP ist mächtig, aber

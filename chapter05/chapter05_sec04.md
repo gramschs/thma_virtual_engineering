@@ -45,7 +45,7 @@ Starrkörpertransformation
 **Zur Vertiefung:**
 
 Der *RMS-Fehler* (Root Mean Square error) ist der zentrale Qualitätsmaßstab
-nach einer Registration. Er gibt den quadratischen Mittelwert aller
+nach einer Registrierung. Er gibt den quadratischen Mittelwert aller
 Punkt-zu-Punkt-Abstände an und liegt in derselben Einheit wie die Koordinaten
 des Meshes, also bei uns in Millimetern.
 
@@ -56,7 +56,7 @@ gar nicht in beiden Meshes vorhanden sind, und damit systematisch falsche
 Transformationen berechnet.
 
 Die *Starrkörpertransformation* ist die fundamentale Einschränkung der
-Registration: Wir erlauben ausschließlich Rotation und Translation, keine
+Registrierung: Wir erlauben ausschließlich Rotation und Translation, keine
 Skalierung. Das ist sinnvoll, weil zwei Scans desselben Objekts dieselbe
 physikalische Größe haben sollten. Kleine Unterschiede in den Boundingboxen
 (wie in Abschnitt 5.3 beobachtet) sind Messfehler der Photogrammetrie, keine
@@ -85,7 +85,7 @@ Protokollzeilen:
    Sie Ihre Antwort anhand der Δ RMS-Spalte.
 2. Wie bewerten Sie den finalen RMS-Fehler von 0.288 mm für eine
    Photogrammetrie-Aufnahme mit einem Smartphone? Ist das eine gute oder
-   eine schlechte Registration?
+   eine schlechte Registrierung?
 3. Ein zweiter Versuch mit einer schlechteren Vorausrichtung liefert nach
    100 Iterationen einen RMS von 3.91 mm, der sich nicht mehr verändert.
    Was ist wahrscheinlich passiert?
@@ -110,7 +110,7 @@ Praktisch konvergiert ist der Algorithmus ab **Iteration 50**. In der
 - Von Iteration 50 zu 100: Δ RMS = 0.000 mm. Keine messbare Veränderung mehr.
 
 Das formale Konvergenzkriterium (Δ RMS < $10^{-5}$) wäre spätestens bei
-Iteration 100 erfüllt. Praktisch ist die Registration aber bereits nach
+Iteration 100 erfüllt. Praktisch ist die Registrierung aber bereits nach
 Iteration 50 abgeschlossen, weil Δ RMS = 0.003 mm für unsere Zwecke
 vernachlässigbar ist.
 
@@ -127,7 +127,7 @@ des erreichbaren Bereichs. Für die Qualitätssicherung unserer Kugelbahn in
 Kapitel 6 ist dieser RMS-Fehler akzeptabel: Abweichungen in der
 Abweichungsanalyse, die deutlich über 0.3 mm liegen, sind dann tatsächlichen
 geometrischen Unterschieden zwischen den Scans zuzuschreiben und nicht dem
-Registrationsfehler.
+Registrierungsfehler.
 
 **Teilaufgabe 3: Was ist beim zweiten Versuch passiert?**
 
@@ -277,9 +277,9 @@ Referenzpunktpaare hinzu oder verbessern die Position der bestehenden Paare.
 
 ````{admonition} Übung 5.4 (Mini-Projekt)
 :class: tip
-**Vollständige Registration zweier eigener Scans**
+**Vollständige Registrierung zweier eigener Scans**
 
-Führen Sie die vollständige Registration aus Abschnitt 5.3 auf zwei eigenen
+Führen Sie die vollständige Registrierung aus Abschnitt 5.3 auf zwei eigenen
 Meshroom-Ergebnissen durch.
 
 **Teilaufgaben:**
@@ -293,19 +293,19 @@ Meshroom-Ergebnissen durch.
    drei Referenzpunktpaaren durch. Notieren Sie, welche markanten Stellen des
    Objekts Sie als Referenzpunkte gewählt haben und warum.
 
-3. **ICP:** Führen Sie die ICP-Registration durch und notieren Sie den
+3. **ICP:** Führen Sie die ICP-Registrierung durch und notieren Sie den
    RMS-Fehler vor und nach ICP sowie die Anzahl der Iterationen bis zur
    Konvergenz.
 
 4. **Bewertung:** Vergleichen Sie Ihr Ergebnis mit dem in Übung 5.2
-   analysierten Konvergenzverlauf. Ist Ihre Registration qualitativ gut?
+   analysierten Konvergenzverlauf. Ist Ihre Registrierung qualitativ gut?
    Was könnte den RMS-Fehler weiter senken?
 
 5. **Dokumentation:** Erstellen Sie für Ihr Projekt eine kurze Dokumentation mit
    Screenshots der Vorausrichtung, des ICP-Ergebnisses und einer tabellarischen
    Zusammenfassung der Kennzahlen.
 
-*Optionale Erweiterung:* Wiederholen Sie die Registration mit einer
+*Optionale Erweiterung:* Wiederholen Sie die Registrierung mit einer
 absichtlich schlechteren Vorausrichtung. Ab welchem initialen RMS-Fehler
 beobachten Sie ein lokales Minimum? Vergleichen Sie Ihr empirisches Ergebnis
 mit dem Schwellenwert aus Übung 5.3.

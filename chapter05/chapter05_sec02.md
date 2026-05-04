@@ -20,10 +20,10 @@ wählen müssen.
 :class: attention
 * [ ] Sie können die drei Teilschritte eines ICP-Iterationsschritts benennen
   und ihre Funktion erläutern.
-* [ ] Sie können den RMS-Fehler als Qualitätsmaß einer Registration interpretieren
+* [ ] Sie können den RMS-Fehler als Qualitätsmaß einer Registrierung interpretieren
   und einen Konvergenzverlauf qualitativ beurteilen.
 * [ ] Sie können erklären, was Überlappungsgrad und Auflösungsunterschied mit
-  der Güte einer ICP-Registration zu tun haben.
+  der Güte einer ICP-Registrierung zu tun haben.
 * [ ] Sie können mindestens drei Situationen benennen, in denen ICP versagt,
   und jeweils eine Gegenmaßnahme nennen.
 ```
@@ -81,7 +81,7 @@ außerhalb dieses Bereichs werden von der Optimierung ausgeschlossen.
 andere, entstehen systematisch asymmetrische Korrespondenzen: Viele Punkte des
 dichten Meshes finden ihren nächsten Nachbarn im groben Mesh, aber dieser
 Nachbar liegt weit von der tatsächlichen Oberfläche entfernt. CloudCompare
-bietet die Möglichkeit, beide Meshes vor der Registration auf eine ähnliche
+bietet die Möglichkeit, beide Meshes vor der Registrierung auf eine ähnliche
 Auflösung zu vereinfachen.
 
 ```{admonition} Mini-Übung
@@ -92,7 +92,7 @@ als festem Referenz-Mesh und Mesh B als bewegtem Mesh durchgeführt.
 
 1. Für welches Mesh sucht ICP Korrespondenzpaare, und in welchem findet es
    die nächsten Nachbarn?
-2. Welchen praktischen Schritt würden Sie vor der Registration empfehlen?
+2. Welchen praktischen Schritt würden Sie vor der Registrierung empfehlen?
 ```
 
 ````{admonition} Lösung
@@ -107,20 +107,20 @@ als festem Referenz-Mesh und Mesh B als bewegtem Mesh durchgeführt.
    abtastet. Diese "verwaisten" Punkte fließen nicht in die Optimierung ein,
    weil die Korrespondenzsuche nur von Mesh B ausgeht.
 
-2. Wir würden Mesh A vor der Registration vereinfachen (englisch: subsample
+2. Wir würden Mesh A vor der Registrierung vereinfachen (englisch: subsample
    oder decimate), bis beide Meshes eine ähnliche Punktdichte haben. In
    CloudCompare ist das über `Edit > Subsample` möglich. Eine ähnliche
    Auflösung beider Meshes macht die Korrespondenzen symmetrischer und
    reduziert systematische Verzerrungen in der berechneten Transformation.
 ````
 
-## Woran erkenne ich eine gute Registration?
+## Woran erkenne ich eine gute Registrierung?
 
-Am Ende jeder ICP-Registration zeigt CloudCompare einen Wert, den wir in
+Am Ende jeder ICP-Registrierung zeigt CloudCompare einen Wert, den wir in
 Kapitel 6 noch sehr häufig sehen werden: den **RMS-Fehler** (Root Mean Square
 error).
 
-Der RMS-Fehler fasst die Qualität der Registration in einer einzigen Zahl
+Der RMS-Fehler fasst die Qualität der Registrierung in einer einzigen Zahl
 zusammen. Er ist die Quadratwurzel des mittleren quadratischen Abstands aller
 Korrespondenzpaare nach der letzten Iteration:
 
@@ -131,7 +131,7 @@ Korrespondenzpaare nach der letzten Iteration:
 Dabei ist $d_i$ der Abstand zwischen dem $i$-ten Korrespondenzpaar. Die Einheit
 ist identisch mit der Einheit unserer Koordinaten: Millimeter, wenn wir die
 Meshes in Millimetern laden. Ein RMS-Fehler von 0.3 mm bedeutet also, dass die
-Punkte beider Meshes nach der Registration im Mittel etwa 0.3 mm voneinander
+Punkte beider Meshes nach der Registrierung im Mittel etwa 0.3 mm voneinander
 entfernt sind. (Genau genommen ist es der quadratische Mittelwert, der größere
 Abstände stärker gewichtet als kleinere.)
 
@@ -149,13 +149,13 @@ handgroßen Objekt (etwa 200 mm Länge) sind folgende Richtwerte nützlich:
 
 Ebenso wichtig wie der finale RMS-Fehler ist der **Konvergenzverlauf**: Wie hat
 sich der RMS-Fehler über die Iterationen verändert? Das folgende Codebeispiel
-zeigt den typischen Verlauf einer erfolgreichen Registration:
+zeigt den typischen Verlauf einer erfolgreichen Registrierung:
 
 ```{code-cell} python
 import plotly.express as px
 import pandas as pd
 
-# Beispielhafter Konvergenzverlauf einer ICP-Registration
+# Beispielhafter Konvergenzverlauf einer ICP-Registrierung
 # (Daten aus Übung 5.2; dienen hier als Veranschaulichung)
 ITERATIONEN = [1, 5, 10, 20, 50, 100]
 RMS_FEHLER  = [4.832, 1.204, 0.387, 0.291, 0.288, 0.288]
@@ -165,7 +165,7 @@ df = pd.DataFrame({'Iteration': ITERATIONEN, 'RMS-Fehler (mm)': RMS_FEHLER})
 fig = px.line(
     df, x='Iteration', y='RMS-Fehler (mm)',
     markers=True,
-    title='Typischer Konvergenzverlauf einer ICP-Registration',
+    title='Typischer Konvergenzverlauf einer ICP-Registrierung',
     labels={'Iteration': 'Iteration', 'RMS-Fehler (mm)': 'RMS-Fehler (mm)'}
 )
 fig.update_layout(yaxis_range=[0, 5.5])
@@ -210,7 +210,7 @@ Rotationsachse durch eine zusätzliche Einschränkung manuell fixieren.
 
 - **Stark unterschiedliche Auflösungen:** Wie oben erläutert, entstehen bei sehr
 verschiedenen Punktdichten systematisch verzerrte Korrespondenzen. Gegenmaßnahme:
-Subsampling des dichteren Meshes vor der Registration.
+Subsampling des dichteren Meshes vor der Registrierung.
 
 ```{admonition} Mini-Übung
 :class: tip
@@ -256,7 +256,7 @@ Mathematisch minimiert ICP den mittleren quadratischen Abstand aller
 Korrespondenzpaare und löst dieses Problem pro Iteration geschlossen mit SVD.
 Praktisch beurteilen wir die Qualität über den RMS-Fehler und den
 Konvergenzverlauf: Ein steiler Abfall gefolgt von einer Abflachung auf niedrigem
-Niveau ist das Zeichen einer erfolgreichen Registration. Konzeptuell wissen wir,
+Niveau ist das Zeichen einer erfolgreichen Registrierung. Konzeptuell wissen wir,
 dass ICP in vier Situationen versagt: schlechte Vorausrichtung, zu geringer
 Überlappungsgrad, Rotationssymmetrie und stark unterschiedliche Auflösungen.
 

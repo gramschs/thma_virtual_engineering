@@ -7,7 +7,7 @@ kernelspec:
 # 5.3 Zwei Scans ausrichten: Schritt für Schritt
 
 Theorie und Praxis liegen in der Photogrammetrie selten weit auseinander. Wir
-haben in den letzten beiden Abschnitten verstanden, warum Registration
+haben in den letzten beiden Abschnitten verstanden, warum Registrierung
 notwendig ist, wie ICP intern funktioniert und wann er versagt. Jetzt wenden
 wir all das an. Das Ziel dieses Abschnitts: Zwei bereinigte Meshes unserer
 Kugelbahn, die aktuell in verschiedenen Koordinatensystemen liegen, werden am
@@ -24,7 +24,7 @@ Objekts. Diese können zum Beispiel aus einer der folgenden Varianten stammen:
   teilen wir die Fotos zufällig in zwei Hälften auf und rekonstruieren beide
   Teilmengen separat in Meshroom, wie in Kapitel 2 beschrieben. Das Ergebnis
   ist bewusst schlechter als das Gesamtmodell und macht den Nutzen der
-  Registration besonders deutlich.
+  Registrierung besonders deutlich.
 * **Zwei Scaniverse-Scans:** Wir scannen dasselbe Objekt in Scaniverse in
   zwei getrennten Sessions (z.B. unterschiedliche Kamerapfade) und exportieren
   beide Scans als 3D-Mesh (z.B. `.ply` oder `.obj`).
@@ -48,9 +48,9 @@ vergleichbare Auflösung.
   DB Tree strukturiert organisieren.
 * [ ] Sie können eine manuelle Vorausrichtung mit dem "Align (point pairs
   picking)"-Werkzeug durchführen.
-* [ ] Sie können eine feine ICP-Registration mit begründeten Parametern
+* [ ] Sie können eine feine ICP-Registrierung mit begründeten Parametern
   durchführen und den RMS-Fehler ablesen.
-* [ ] Sie können das Registrationsergebnis visuell und quantitativ bewerten
+* [ ] Sie können das Registrierungsergebnis visuell und quantitativ bewerten
   und das ausgerichtete Mesh für die Abweichungsanalyse in Kapitel 6
   exportieren.
 ```
@@ -64,11 +64,11 @@ Dann öffnen wir das zweite Mesh ebenfalls über `File > Open`, ohne CloudCompar
 zwischenzeitlich zu schließen. Beide Meshes erscheinen jetzt als separate
 Einträge im DB Tree.
 
-Bevor wir irgendetwas tun, organisieren wir den DB Tree. Wir benennen die
-Meshes durch Doppelklick auf den Namen um: Das erste Mesh nennen wir `scan_A`,
-das zweite `scan_B`. Zusätzlich vergeben wir im Properties Panel eine
-Anzeigefarbe, damit wir im 3D Viewer auf einen Blick sehen, welches Mesh
-welches ist. `scan_A` erhält zum Beispiel Blau, `scan_B` Orange. Diese
+Bevor wir irgendetwas tun, organisieren wir den DB Tree. Wir benennen die Meshes
+durch Doppelklick auf den Namen um: Das erste Mesh nennen wir `scan_A`, das
+zweite `scan_B`. Zusätzlich vergeben wir im Properties Panel eine Anzeigefarbe,
+damit wir im 3D Viewer auf einen Blick sehen, welches Mesh welches ist (Edit -->
+Color --> Set Unique). `scan_A` erhält zum Beispiel Blau, `scan_B` Orange. Diese
 Farbunterscheidung ist besonders wertvoll, wenn wir die Meshes nach der
 Vorausrichtung überlagert betrachten.
 
@@ -88,7 +88,7 @@ ab und notieren sie. Wir erwarten beide Werte in einer ähnlichen
 Größenordnung, weil wir dasselbe Objekt mit ähnlicher Aufnahmedichte
 rekonstruiert haben. Eine Faktor-3-Abweichung oder mehr deutet auf ein
 Problem in der Meshroom-Rekonstruktion hin. In Abschnitt 5.2 haben wir
-erklärt, warum stark unterschiedliche Auflösungen die ICP-Registration
+erklärt, warum stark unterschiedliche Auflösungen die ICP-Registrierung
 verfälschen können.
 
 ```{admonition} Mini-Übung
@@ -99,7 +99,7 @@ Angenommen, im DB Tree erscheinen nach dem Laden folgende Einträge:
 - `scan_B`: 79.614 Vertices, 159.012 Faces
 
 Was schließen Sie daraus? Was würden Sie als nächsten Schritt tun, bevor Sie
-mit der Registration beginnen?
+mit der Registrierung beginnen?
 ```
 
 ````{admonition} Lösung
@@ -109,7 +109,7 @@ Der Faktor etwa 10 zwischen den Vertex-Zahlen ist ein deutliches Warnsignal.
 Er deutet darauf hin, dass eine der beiden Meshroom-Rekonstruktionen deutlich
 weniger Fotos oder ungünstigere Parameter hatte als die andere. Wie wir in
 Abschnitt 5.2 gesehen haben, können stark unterschiedliche Punktdichten die
-ICP-Registration durch asymmetrische Korrespondenzen verfälschen.
+ICP-Registrierung durch asymmetrische Korrespondenzen verfälschen.
 
 Als nächsten Schritt würden wir `scan_A` vereinfachen, bis die Punktzahl
 näher an `scan_B` liegt. In CloudCompare: `scan_A` im DB Tree auswählen,
@@ -121,7 +121,7 @@ Doppelte von `scan_B` reduziert. Das vereinfachte Mesh benennen wir
 
 ## Schritt 2: Manuelle Vorausrichtung mit Referenzpunkten
 
-Die manuelle Vorausrichtung ist der wichtigste Schritt der gesamten Registration.
+Die manuelle Vorausrichtung ist der wichtigste Schritt der gesamten Registrierung.
 Eine gute Vorausrichtung entscheidet darüber, ob ICP danach in das globale
 Minimum konvergiert oder in einem lokalen Minimum stecken bleibt.
 
@@ -227,7 +227,7 @@ sich abflachende Kurve.
 
 ## Schritt 4: RMS-Fehler ablesen und bewerten
 
-Nach dem Ende der ICP-Registration zeigt CloudCompare den finalen RMS-Fehler
+Nach dem Ende der ICP-Registrierung zeigt CloudCompare den finalen RMS-Fehler
 in einem Dialogfenster an und schreibt ihn zusätzlich in die Konsole. Wir
 notieren diesen Wert zusammen mit dem initialen RMS-Fehler nach der
 Vorausrichtung und der Anzahl der Iterationen bis zur Konvergenz.
@@ -317,12 +317,12 @@ for name, mesh in [("scan_A (Referenz)", mesh_a),
     print()
 ```
 
-Nach der Registration sollten die Boundingboxen beider Meshes nahezu identisch
+Nach der Registrierung sollten die Boundingboxen beider Meshes nahezu identisch
 sein. Eine Abweichung in einer Achse von mehr als 5 mm ist ein Hinweis darauf,
-dass die Registration nicht vollständig konvergiert ist oder dass ein
+dass die Registrierung nicht vollständig konvergiert ist oder dass ein
 Maßstabsfehler beim Import vorliegt.
 
-```{admonition} Checkliste: Registration abgeschlossen
+```{admonition} Checkliste: Registrierung abgeschlossen
 :class: note
 * **DB Tree organisiert:** Beide Meshes sind benannt und farblich unterschieden.
 * **Initialer RMS notiert:** Der Wert nach der Vorausrichtung liegt unter 10 mm.
@@ -375,10 +375,10 @@ verteilt sind.
 
 ## Zusammenfassung und Ausblick
 
-In diesem Abschnitt haben wir die vollständige Registration in CloudCompare
+In diesem Abschnitt haben wir die vollständige Registrierung in CloudCompare
 Schritt für Schritt durchgeführt: Meshes laden und im DB Tree organisieren,
 manuelle Vorausrichtung mit dem "Align (point pairs picking)"-Werkzeug, feine
-ICP-Registration mit dokumentierten Parametern, RMS-Fehler ablesen und
+ICP-Registrierung mit dokumentierten Parametern, RMS-Fehler ablesen und
 bewerten, Export und Python-Check.
 
 In Kapitel 6 werden wir das registrierte Ergebnis für die Abweichungsanalyse

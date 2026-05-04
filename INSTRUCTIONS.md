@@ -142,8 +142,6 @@ Aufgabentext hier.
 ```
 ````
 
-````
-
 ### Nummerierte Übungen (Schwierigkeitsgrad mit Sternen)
 
 Admonition-Blöcke werden grundsätzlich mit **drei Backticks** (` ``` `) geöffnet
@@ -153,7 +151,6 @@ da MyST sonst den inneren Block als Abschluss des äußeren interpretiert.
 
 Drei Backticks (Normalfall, kein eingebetteter Code):
 
-```markdown
 ```{admonition} Übung X.Y (✩)
 :class: tip
 Aufgabentext hier.
@@ -164,15 +161,13 @@ Aufgabentext hier.
 :class: dropdown
 Lösungstext hier.
 ```
-```
 
 Vier Backticks (nur wenn die Lösung einen ```python-Block enthält):
 
-````markdown
-````{admonition} Übung X.Y (✩✩)
+```{admonition} Übung X.Y (✩✩)
 :class: tip
 Aufgabentext hier.
-````
+```
 
 ````{admonition} Lösung
 :class: tip
@@ -180,7 +175,6 @@ Aufgabentext hier.
 ```python
 # Musterlösung hier
 ```
-````
 ````
 
 Schwierigkeitsgrade:
@@ -200,7 +194,6 @@ Schwierigkeitsgrade:
 title="YouTube video player" frameborder="0" allow="accelerometer; autoplay;
 clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 allowfullscreen></iframe>
-```
 ```
 
 ### Markdown-Tabellen
@@ -256,6 +249,8 @@ Jede TikZ-Datei verwendet ausnahmslos die folgende Präambel:
 
 `pgfplots` wird in jeder Datei eingebunden, auch wenn die Abbildung nur
 reines TikZ verwendet, damit die Präambel über alle Dateien identisch bleibt.
+
+Die Präambel darf bei Bedarf erweitert werden.
 
 ### Schrift
 
@@ -415,17 +410,21 @@ anhängen, wenn zwei Sprachversionen derselben Abbildung existieren.
 ## Inhaltliche Konventionen
 
 ### Fachlicher Kontext
+
 - Alle Beispiele und Aufgaben beziehen sich auf den **Maschinenbau**
 - Leitthema ist stets die **Kugelbahn** oder verwandte Anwendungen
-- Variablennamen sind **sprechend und auf Englisch** 
+- Variablennamen sind **sprechend und auf Englisch**
 
 ### Konstanten
+
 - Konstanten werden in **GROSSBUCHSTABEN** geschrieben (z. B. `CRITICAL_TEMPERATURE = 300`)
 
 ### Visualisierung
+
 - Standardmäßig wird **Plotly Express** (`import plotly.express as px`) für Diagramme verwendet
 
 ### Sprache
+
 - Alle Materialien sind auf **Deutsch**
 - Fachbegriffe auf Englisch werden beim ersten Auftreten erklärt
 - Englische Fachbegriffe, die im deutschen Satz als Nomen verwendet werden,
@@ -443,26 +442,31 @@ anhängen, wenn zwei Sprachversionen derselben Abbildung existieren.
   Klammern setzen
 
 ### Rhetorische Fragen
+
 - Rhetorische Fragen sind ausdrücklich erwünscht, um Aufmerksamkeit zu lenken
   und Spannung aufzubauen
 - Rhetorische Fragen werden kursiv gesetzt:
   *Aber warum liefert Photogrammetrie bei glänzenden Oberflächen schlechte Ergebnisse?*
 
 ### Unterabschnittsüberschriften
+
 - Überschriften sollen als Fragen oder kurze natürliche Aussagen formuliert
   werden, die ein Studierender natürlich stellen würde
 
 Gute Beispiele:
+
 - "Warum ist Textur so wichtig?"
 - "Wie funktioniert Structure from Motion?"
 - "Was leistet CloudCompare?"
 
 Schlechte Beispiele (abstrakte Substantivphrasen):
+
 - "Grundlagen der Photogrammetrie"
 - "Anwendungsfelder"
 - "Eigenschaften von Punktwolken"
 
 ### Prinzip: Erst Beispiel, dann abstrakt
+
 Jedes neue Konzept wird nach folgendem Dreischritt eingeführt:
 
 1. Konkretes Beispiel zuerst: Wir beschreiben ein praktisches Problem
@@ -474,7 +478,9 @@ Jedes neue Konzept wird nach folgendem Dreischritt eingeführt:
    die technische Erklärung ein.
 
 ### Rück- und Vorwärtsverweise
+
 Jede Sektion soll enthalten:
+
 - Mindestens einen Rückverweis auf ein Konzept aus einer früheren Sektion
 - Mindestens einen Vorwärtsverweis auf ein späteres Thema
 
@@ -487,6 +493,7 @@ Original vergleichen und Abweichungen sichtbar machen können."
 Schlecht: "Dies wird später behandelt."
 
 ### YouTube-Videos
+
 - Videos werden direkt nach dem Unterabschnitt eingebettet, in dem das
   entsprechende Konzept eingeführt wurde, nicht am Ende der Sektion gesammelt
 - Videos sind eine Vertiefung, kein Ersatz für den Fließtext
@@ -506,36 +513,18 @@ Jede Übungsdatei folgt diesem Muster:
 
 Lösungen sind immer als aufklappbare Dropdowns eingebettet.
 
----
-
-## Referenzmaterial
-
-- **Modulhandbuch:** `Modulhandbuch_VirtualEngineering.pdf`
-- **Beispielkapitel Python:** `chapter04_sec01.md`, `chapter04_sec02.md`, `chapter04_sec03.md`
-- **Vorlesungsgliederung:** siehe Gesprächsprotokoll im Projekt
-
----
-
-## Hinweise für die Materialerstellung
-
-- **Just-in-time:** Material muss nicht vollständig vorab fertig sein; 1-2 Wochen Vorlauf reicht
-- **Forschendes Lernen:** Transparenz kommunizieren - Workflow wird gemeinsam erarbeitet
-- **Starter-Code:** Für VPython-Aufgaben immer einen Grundgerüst-Code bereitstellen
-- **YouTube-Tutorials:** Für Tool-Einführungen (CloudCompare, Meshroom) können englische
-  Tutorials verlinkt werden, statt eigene Videos zu erstellen
-
----
-
 ## Qualitätscheckliste vor dem Abliefern
 
 Vor dem Ausgeben einer Sektion prüfen:
 
 - [ ] YAML-Header vorhanden?
-- [ ] Nach dem H1-Titel 3-4 einleitende Sätze vorhanden (konkretes Szenario, kein "In diesem Kapitel ...")?
+- [ ] Nach dem H1-Titel 3-4 einleitende Sätze vorhanden (konkretes Szenario,
+  kein "In diesem Kapitel ...")?
 - [ ] Einleitung beginnt mit einem konkreten Szenario oder Problem, nicht mit
   einer Definition?
 - [ ] Lernziele mit `* [ ]` formatiert.
-- [ ] Unterabschnittsüberschriften als Fragen oder natürliche Aussagen formuliert?
+- [ ] Unterabschnittsüberschriften als Fragen oder natürliche Aussagen
+  formuliert?
 - [ ] Prinzip "Erst Beispiel, dann abstrakt" eingehalten?
 - [ ] Mindestens eine rhetorische Frage im Fließtext, kursiv gesetzt?
 - [ ] Mindestens ein Rückverweis auf eine frühere Sektion?
@@ -546,7 +535,8 @@ Vor dem Ausgeben einer Sektion prüfen:
 - [ ] Wir-Perspektive im Fließtext, Sie-Anrede nur in den Lernzielen?
 - [ ] YouTube-Videos direkt nach dem jeweiligen Unterabschnitt eingebettet,
   nicht am Ende der Sektion gesammelt?
-- [ ] Tabellen im compact-Stil gesetzt (Leerzeichen in der Trennzeile: `| --- |`)?
+- [ ] Tabellen im compact-Stil gesetzt (Leerzeichen in der Trennzeile: `| ---
+  |`)?
 - [ ] Mini-Übungen mit Lösungs-Dropdown versehen?
 - [ ] Zusammenfassung mit konkretem Ausblick auf die nächste Sektion?
 - [ ] TikZ-Abbildungen: Präambel identisch mit Vorlage, alle 7 Farben definiert?

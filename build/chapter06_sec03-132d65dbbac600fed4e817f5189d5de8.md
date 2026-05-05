@@ -1,0 +1,375 @@
+---
+kernelspec:
+  name: python3
+  display_name: 'Python 3'
+---
+
+# 6.3 Abweichungsanalyse in CloudCompare: Schritt für Schritt
+
+In den Abschnitten 6.1 und 6.2 haben wir erarbeitet, was wir messen und wie
+wir das Ergebnis lesen. Jetzt führen wir die Abweichungsanalyse für unsere
+Kugelbahn konkret durch. Die Ausgangslage: Wir haben aus Kapitel 5 zwei
+registrierte Meshes bereitliegen, deren Koordinatensysteme durch ICP
+aufeinander abgestimmt wurden. CloudCompare ist geöffnet. Fünf Schritte
+trennen uns vom exportierten Ergebnis.
+
+## Lernziele
+
+```{admonition} Lernziele
+:class: attention
+* [ ] Sie können zwei registrierte Meshes in CloudCompare mit dem Werkzeug
+  "Cloud/Mesh Distance" vergleichen und die Berechnung mit begründeten
+  Parametern starten.
+* [ ] Sie können die berechnete Abweichungskarte als Scalar Field auf dem Mesh
+  anzeigen, die Farbskala anpassen und kritische Bereiche identifizieren.
+* [ ] Sie können das Abweichungshistogramm in CloudCompare aufrufen und die
+  wichtigsten statistischen Kennzahlen ablesen.
+* [ ] Sie können das Ergebnis der Abweichungsanalyse als Bericht exportieren
+  und die Kennzahlen in Python weiterverarbeiten und visualisieren.
+```
+
+## Schritt 1: Soll- und Ist-Mesh laden und prüfen
+
+Wir starten CloudCompare und öffnen die beiden registrierten `.ply`-Dateien
+aus Kapitel 5 über `File > Open`. Da wir sie einzeln laden, erscheinen beide
+als separate Einträge im **DB Tree**. Wir benennen sie sofort um, damit wir
+während der Analyse keine Verwechslung riskieren: Ein Doppelklick auf den
+Eintragnamen im DB Tree öffnet ein Textfeld. Wir nennen das qualitativ
+bessere Mesh `soll_mesh` und das zu bewertende `ist_mesh`.
+
+Bevor wir die Berechnung starten, führen wir zwei Prüfungen durch.
+
+**Prüfung 1: Sind beide Entitäten Mesh-Einträge?**
+Im DB Tree erkennen wir Mesh-Einträge am Netzsymbol. Falls eines der Objekte
+ein Wolkensymbol trägt, wurde es beim Import als Punktwolke behandelt. In
+diesem Fall schließen wir CloudCompare, überprüfen die Datei mit einem
+`trimesh`-Check (wie in Abschnitt 3.3 beschrieben) und öffnen die Datei
+erneut.
+
+**Prüfung 2: Liegen beide Meshes visuell übereinander?**
+Wir schalten im DB Tree abwechselnd die Sichtbarkeit beider Meshes ein und
+aus. Sie sollten nahezu deckungsgleich erscheinen. Falls sie noch versetzt
+sind, ist die Registrierung aus Kapitel 5 nicht korrekt abgeschlossen worden
+und muss wiederholt werden, bevor wir fortfahren.
+
+```{figure} pics/chap06_screenshot.png
+Beide registrierten Meshes der Kugelbahn im DB Tree von CloudCompare. (Quelle:
+eigene Darstellung; Lizenz [CC BY-SA
+4.0](https://creativecommons.org/licenses/by-sa/4.0))
+```
+
+```{admonition} Tipp
+:class: note
+Für vorzeichenbehaftete Abstände (die wir in Schritt 2 aktivieren werden)
+muss das Soll-Mesh konsistente Normalen haben, also Normalen, die alle nach
+außen zeigen. Wir prüfen das, indem wir im **Properties Panel** die Option
+"Show normals" aktivieren. Die kleinen Linien auf der Oberfläche sollten alle
+von der Fläche weg zeigen, nicht hinein. Falls sie inkonsistent sind, korrigieren
+wir sie über `Edit > Normals > Orient normals > Orient consistently`.
+```
+
+## Schritt 2: Punkt-zu-Oberfläche-Abstände berechnen
+
+Jetzt kommt der zentrale Rechenschritt. Wir wählen im DB Tree zunächst den
+Eintrag `ist_mesh` aus, dann halten wir `Strg` gedrückt und klicken
+zusätzlich auf `soll_mesh`, sodass beide Einträge markiert sind. Dann
+navigieren wir zu `Tools > Distances > Cloud/Mesh Distance`.
+
+Der Dialog zeigt uns zwei Felder: "Compared cloud" und "Reference mesh". Wir
+prüfen, ob CloudCompare die Rollen korrekt zugeordnet hat: `ist_mesh` (oder
+seine Vertices) steht in der oberen Zeile als verglichenes Objekt, `soll_mesh`
+als Referenz. Falls die Zuweisung vertauscht ist, tauschen wir sie über die
+Schaltfläche im Dialog.
+
+Wir konfigurieren drei Parameter, bevor wir auf "Compute" klicken:
+
+**Signed distances:** Wir aktivieren die Checkbox "Signed distances". Damit
+erhalten wir positive Werte für Bereiche, in denen das Ist-Mesh außerhalb der
+Referenzfläche liegt, und negative Werte, wo es innerhalb liegt. Ohne diese
+Option werden nur Beträge berechnet, und wir verlieren die Richtungsinformation.
+
+**Max distance:** Wir setzen den maximalen Abstand auf 5 mm. Dieser Grenzwert
+schneidet Vertices ab, die weiter als 5 mm von der Referenzfläche entfernt
+sind. Solche extremen Werte stammen fast immer von verbliebenen Artefakten
+und würden andernfalls die Farbskala stark ausdehnen und die eigentlich
+interessanten Abweichungen im Submillimeterbereich optisch zusammendrücken.
+
+**Octree level:** Wir lassen diesen Wert auf "Auto". CloudCompare wählt
+dann selbstständig eine geeignete räumliche Auflösung für die
+Nächst-Nachbar-Suche.
+
+Wir klicken auf "Compute". Die Berechnung dauert je nach Mesh-Größe einige
+Sekunden bis wenige Minuten. In der **Konsole** erscheinen danach die
+wichtigsten Kennzahlen: Mittelwert, Standardabweichung und maximaler Abstand.
+Wir notieren diese Werte, da wir sie in Schritt 4 und 5 wiederverwenden werden.
+
+```{figure} pics/chap06_fig02_c2m_dialog.png
+Der Cloud/Mesh-Distance-Dialog in CloudCompare mit aktivierten vorzeichenbehafteten
+Abständen und einem Max-Distance-Wert von 5 mm. (Quelle: eigene Darstellung;
+Lizenz [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0))
+```
+
+```{dropdown} Video (EN) "CloudCompare: Comparing point clouds" von OSUR's Point Clouds
+<iframe width="912" height="513" src="https://www.youtube.com/embed/X5P1446GnkU"
+title="CloudCompare: Comparing point clouds" frameborder="0" allow="accelerometer;
+autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+```
+
+```{dropdown} Video (EN) "CloudCompare: Cloud-to-Cloud Distance Tool" von DCOdes
+<iframe width="912" height="513" src="https://www.youtube.com/embed/8dKOibL3iU8" title="CloudCompare: Cloud-to-Cloud Distance Tool" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+```{admonition} Mini-Übung
+:class: tip
+Wir haben die Max-Distance auf 5 mm gesetzt. Ein Kommilitone argumentiert,
+wir sollten gar keinen Grenzwert setzen, um keine Informationen zu verlieren.
+
+1. Warum kann ein zu großer oder fehlender Max-Distance-Wert die
+   Abweichungskarte praktisch unlesbar machen?
+2. Wäre ein Max-Distance-Wert von 0,5 mm für unsere Kugelbahn sinnvoll?
+   Begründen Sie Ihre Antwort mit den Wertebereichen aus Abschnitt 6.1.
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+1. Ohne einen Grenzwert werden alle Abstandswerte in die Farbskala aufgenommen,
+   auch extreme Ausreißer von mehreren Zentimetern. Da die Farbrampe den
+   gesamten Wertebereich gleichmäßig auf die verfügbaren Farben abbildet, wird
+   der für uns interessante Bereich von 0 bis 1 mm auf einen winzigen Ausschnitt
+   der Farbskala zusammengedrückt. Auf der Abweichungskarte erscheint fast alles
+   in derselben Farbe, und die räumliche Variation im relevanten Bereich ist
+   nicht mehr sichtbar.
+
+2. Ein Max-Distance-Wert von 0,5 mm wäre für unsere Kugelbahn zu eng. In
+   Abschnitt 6.1 haben wir beschrieben, dass an problematischen Stellen
+   (glänzende Flächen, schlechte Bildabdeckung) Abweichungen von 1 bis 2 mm
+   möglich sind. Diese Bereiche würden bei einem Grenzwert von 0,5 mm vollständig
+   abgeschnitten und aus der Statistik ausgeschlossen. Wir würden die
+   tatsächliche Qualität unseres Scans systematisch zu gut einschätzen.
+````
+
+## Schritt 3: Abweichungskarte anzeigen und Farbskala einstellen
+
+Nach der Berechnung erscheint im DB Tree unter `ist_mesh` ein neuer Untereintrag:
+das berechnete Scalar Field, benannt nach dem Abstandsmaß. CloudCompare
+aktiviert es automatisch und färbt das Mesh entsprechend ein. Im 3D Viewer
+sehen wir jetzt die Abweichungskarte.
+
+Am rechten Rand des 3D Viewers erscheint die **Farbskala**. Sie zeigt den
+aktuellen Wertebereich: oben der maximale, unten der minimale Abstandswert in
+Millimetern. Da CloudCompare den tatsächlichen Wertebereich automatisch
+bestimmt, kann die Skala anfangs durch wenige Ausreißer sehr weit gespannt sein.
+
+Wir passen die Farbskala an, indem wir links unten im **Properties Panel** auf
+das Farbskalensymbol klicken und den **Color Scale Editor** öffnen. Hier können
+wir den angezeigten Bereich manuell eingrenzen. Wir setzen für unsere Kugelbahn
+einen Bereich von -1,0 mm bis +1,0 mm. Damit fällt die Farbrampe auf den
+Bereich, in dem die interessanten Abweichungen liegen.
+
+```{figure} pics/chap06_fig03_colormap.png
+Abweichungskarte der Kugelbahn nach dem Einstellen der Farbskala auf
+±1,0 mm. Rote Bereiche zeigen positive Abweichungen (Ist-Mesh liegt außerhalb
+der Referenzfläche), blaue Bereiche negative Abweichungen. (Quelle: eigene
+Darstellung; Lizenz [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0))
+```
+
+Jetzt inspizieren wir die Karte systematisch. Wir drehen das Mesh von allen
+Seiten und beantworten folgende Fragen:
+
+Gibt es großflächige, zusammenhängende Farbflächen (systematische Abweichungen)
+oder überwiegt ein kleinräumiges, unruhiges Muster (zufälliges Rauschen)?
+Welche geometrischen Bereiche sind besonders stark abweichend? Stimmen diese
+mit den Stellen überein, an denen wir in Abschnitt 6.1 Schwächen erwartet
+haben, also der Unterseite des Objekts oder glänzenden Flächen?
+
+*Was tun wir, wenn das gesamte Mesh nahezu einfarbig bleibt, obwohl wir die
+Skala bereits eingestellt haben?*
+
+In diesem Fall sind die tatsächlichen Abweichungen kleiner als der eingestellte
+Bereich. Wir öffnen den Color Scale Editor erneut und engen den Bereich weiter
+ein, zum Beispiel auf -0,3 mm bis +0,3 mm, bis eine sinnvolle Farbvariation
+sichtbar wird.
+
+```{admonition} Mini-Übung
+:class: tip
+Wir sehen auf der Abweichungskarte, dass die gesamte Unterseite der Kugelbahn
+gleichmäßig blau eingefärbt ist, während die Oberseite überwiegend im grünen
+Bereich liegt. Wir haben die Farbskala auf -1,0 mm bis +1,0 mm eingestellt.
+
+1. Welchen ungefähren Abstandswert hat die Unterseite?
+2. Handelt es sich um eine systematische oder eine zufällige Abweichung?
+3. Welche der in Abschnitt 6.1 genannten Ursachen kommt hier am ehesten in
+   Frage?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+1. Da die Unterseite gleichmäßig blau eingefärbt ist und Blau bei unserer
+   symmetrischen Skala dem negativen Bereich entspricht, liegt der Abstandswert
+   irgendwo zwischen -1,0 mm und 0 mm. Für eine präzisere Aussage müssten wir
+   einen Vertex in diesem Bereich anklicken: CloudCompare zeigt im Properties
+   Panel den genauen Scalar-Field-Wert des ausgewählten Vertex an.
+
+2. Es handelt sich um eine systematische Abweichung. Ein gleichmäßiges,
+   zusammenhängendes Blau über die gesamte Unterseite ist kein Rauschen,
+   sondern ein kohärentes Muster mit einer gemeinsamen geometrischen Ursache.
+
+3. Die wahrscheinlichste Ursache ist eine schlechte Bildabdeckung der Unterseite
+   während der Aufnahme. Wenn die Kamera selten von unten auf die Kugelbahn
+   gerichtet war, rekonstruiert Meshroom diese Fläche mit geringerer Genauigkeit
+   und produziert einen systematischen Versatz gegenüber dem besser abgedeckten
+   zweiten Scan.
+````
+
+## Schritt 4: Histogramm auswerten und Kennzahlen ablesen
+
+CloudCompare kann das Histogramm der Scalar-Field-Werte direkt anzeigen. Wir
+wählen dazu im DB Tree den Eintrag `ist_mesh`, sodass er hervorgehoben ist,
+und navigieren zu `Edit > Scalar Fields > Show histogram`. Es öffnet sich ein
+separates Fenster mit der Häufigkeitsverteilung aller berechneten Abstandswerte.
+
+```{figure} pics/chap06_fig04_histogram.png
+Histogramm der Abweichungsverteilung in CloudCompare. Die x-Achse zeigt die
+Abstandswerte in Millimetern, die y-Achse die Anzahl der Vertices pro
+Werteintervall. (Quelle: eigene Darstellung; Lizenz [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0))
+```
+
+Die statistischen Kennzahlen selbst lesen wir nicht aus dem Histogramm-Fenster
+ab, sondern aus der **Konsole**: Sie wurden unmittelbar nach dem Berechnen in
+Schritt 2 ausgegeben. Wir scrollen in der Konsole zurück bis zur Ausgabe der
+Berechnung und notieren die folgenden Werte in einer Tabelle:
+
+| Kennzahl | Bedeutung | Unser Wert (mm) |
+| -------- | --------- | --------------- |
+| Mean distance | Mittlere Abweichung | (ablesen) |
+| Std. dev. | Standardabweichung | (ablesen) |
+| Max distance | Maximale Abweichung | (ablesen) |
+
+*Warum geben wir uns nicht mit der CloudCompare-Darstellung zufrieden, sondern
+exportieren die Daten für Python?*
+
+Die Histogramm-Ansicht von CloudCompare ist für eine schnelle Sichtprüfung
+gedacht. Sie bietet keine Möglichkeit, die Darstellung anzupassen, mehrere
+Ergebnisse zu vergleichen oder die Kennzahlen in einem Bericht zu speichern.
+In Schritt 5 übernehmen wir diese Aufgabe mit Python und Plotly Express.
+
+## Schritt 5: Ergebnis exportieren und in Python visualisieren
+
+Um die Abstandswerte in Python weiterzuverarbeiten, exportieren wir das
+Scalar Field als ASCII-Textdatei. Wir klicken im DB Tree auf den
+Vertices-Untereintrag von `ist_mesh` (erkennbar am Zusatz "(vertices)"),
+sodass nur die Vertices ausgewählt sind. Dann navigieren wir zu `File > Save`
+und wählen als Format "ASCII cloud (.txt)".
+
+Im Exportdialog stellen wir sicher, dass die Spalten in der folgenden
+Reihenfolge exportiert werden: X, Y, Z, Scalar field (Abweichung). Wir
+benennen die Datei `kugelbahn_abweichung.txt` und speichern sie im
+Projektordner.
+
+```{admonition} Tipp
+:class: note
+CloudCompare schreibt am Anfang der exportierten `.txt`-Datei eine oder
+mehrere Kommentarzeilen, die mit `//` beginnen und den Spaltennamen enthalten,
+zum Beispiel `//X //Y //Z //C2M absolute distances`. Beim Einlesen in pandas
+müssen wir diese Zeilen überspringen. Der Parameter `comment="//"` in
+`pd.read_csv` erledigt das.
+```
+
+Jetzt laden und analysieren wir die exportierten Daten in Python:
+
+```{code-cell} python
+import pandas as pd
+import plotly.express as px
+
+CSV_PATH = "kugelbahn_abweichung.txt"  # Pfad zur exportierten Datei anpassen
+
+df = pd.read_csv(
+    CSV_PATH,
+    sep=" ",
+    comment="/",
+    header=None,
+    names=["X", "Y", "Z", "Abweichung_mm"]
+)
+
+print(f"Vertices gesamt:      {len(df)}")
+print(f"Mittlere Abweichung:  {df['Abweichung_mm'].mean():.3f} mm")
+print(f"Standardabweichung:   {df['Abweichung_mm'].std():.3f} mm")
+print(f"Maximale Abweichung:  {df['Abweichung_mm'].max():.3f} mm")
+print(f"Minimale Abweichung:  {df['Abweichung_mm'].min():.3f} mm")
+```
+
+Wir vergleichen die Python-Ausgabe mit den Werten aus der CloudCompare-Konsole
+aus Schritt 4. Die Werte sollten übereinstimmen. Kleine Unterschiede im
+Maximalwert können entstehen, wenn CloudCompare beim Export einzelne Vertices
+mit abgeschnittenem Max-Distance-Wert ausschließt.
+
+Jetzt visualisieren wir das Histogramm mit Plotly Express:
+
+```{code-cell} python
+MEAN_VAL = df["Abweichung_mm"].mean()
+
+fig = px.histogram(
+    df,
+    x="Abweichung_mm",
+    nbins=120,
+    title="Verteilung der Punkt-zu-Oberfläche-Abstände der Kugelbahn",
+    labels={"Abweichung_mm": "Abweichung (mm)", "count": "Anzahl Vertices"},
+    color_discrete_sequence=["steelblue"],
+)
+fig.add_vline(
+    x=0,
+    line_dash="dash",
+    line_color="gray",
+    annotation_text="0 mm",
+    annotation_position="top left",
+)
+fig.add_vline(
+    x=MEAN_VAL,
+    line_dash="dot",
+    line_color="firebrick",
+    annotation_text=f"Mittelwert: {MEAN_VAL:.3f} mm",
+    annotation_position="top right",
+)
+fig.update_layout(bargap=0.05)
+fig.show()
+```
+
+Das Histogramm visualisiert, was wir in Abschnitt 6.2 theoretisch beschrieben
+haben: Wie weit das Zentrum der Verteilung von null entfernt liegt, wie breit
+die Verteilung ist und ob es einen langen Ausläufer zu großen Werten hin gibt.
+Die rote gestrichelte Linie macht sofort sichtbar, ob ein systematischer Versatz
+vorliegt.
+
+```{admonition} Checkliste: Abweichungsanalyse abgeschlossen
+:class: note
+* **Beide Meshes geladen und korrekt benannt:** `soll_mesh` und `ist_mesh` im
+  DB Tree.
+* **Normalen des Soll-Meshes konsistent:** alle Normalen zeigen nach außen.
+* **Cloud/Mesh Distance berechnet:** vorzeichenbehaftete Abstände aktiviert,
+  Max-Distance auf 5 mm gesetzt.
+* **Kennzahlen aus der Konsole notiert:** Mittelwert, Standardabweichung,
+  Maximalwert.
+* **Farbskala angepasst:** Bereich auf ±1,0 mm eingestellt, Abweichungskarte
+  von allen Seiten inspiziert.
+* **Systematische und zufällige Muster identifiziert und dokumentiert.**
+* **Scalar Field als ASCII exportiert:** Datei `kugelbahn_abweichung.txt` im
+  Projektordner vorhanden.
+* **Python-Auswertung durchgeführt:** Kennzahlen stimmen mit CloudCompare-Ausgabe
+  überein, Histogramm erstellt.
+```
+
+## Zusammenfassung und Ausblick
+
+In diesem Abschnitt haben wir die vollständige Abweichungsanalyse für unsere
+Kugelbahn von Anfang bis Ende durchgeführt. Wir haben beide registrierten
+Meshes geladen, die Rollen von Soll und Ist festgelegt und mit dem Cloud/Mesh-
+Distance-Werkzeug vorzeichenbehaftete Punkt-zu-Oberfläche-Abstände berechnet.
+Die Farbskala haben wir auf den relevanten Wertebereich eingestellt und die
+Abweichungskarte systematisch nach systematischen und zufälligen Mustern
+untersucht. Die Kennzahlen aus der CloudCompare-Konsole haben wir in Python
+nachvollzogen und als Histogramm visualisiert.
+
+Im nächsten Abschnitt wenden wir dieses Wissen in den Übungen an: Wir
+interpretieren fremde Abweichungskarten, beurteilen Histogramme und entwickeln
+eigenständig eine Strategie zur Qualitätsbewertung eines unbekannten Scans.

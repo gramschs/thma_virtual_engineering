@@ -1,0 +1,246 @@
+---
+kernelspec:
+  name: python3
+  display_name: 'Python 3'
+---
+
+# 6.1 Was ist eine Abweichungsanalyse, und wozu brauchen wir sie?
+
+In Kapitel 5 haben wir zwei Meshes der Kugelbahn mit ICP registriert. Der
+RMS-Fehler nach der feinen Ausrichtung lag bei unter 0.2 mm. Das klingt gut.
+Aber was bedeutet diese eine Zahl konkret? Welche Stellen der Kugelbahn weichen
+stärker ab, welche kaum? Und was verrät uns das über die Qualität unserer
+Photogrammetrie? Um diese Fragen zu beantworten, brauchen wir mehr als einen
+einzigen Mittelwert: Wir brauchen eine Abweichungsanalyse.
+
+## Lernziele
+
+```{admonition} Lernziele
+:class: attention
+* [ ] Sie können erklären, was eine Abweichungsanalyse im Kontext des Reverse
+  Engineering ist und welche Fragen sie beantwortet.
+* [ ] Sie können den Unterschied zwischen einem Soll-Modell und einem
+  Ist-Modell beschreiben und an einem Beispiel aus dem Maschinenbau erläutern.
+* [ ] Sie können den Begriff "Punkt-zu-Oberfläche-Abstand" (point-to-mesh
+  distance) erklären und von einem einfachen Punkt-zu-Punkt-Abstand abgrenzen.
+* [ ] Sie können mindestens drei typische Ursachen für Abweichungen zwischen
+  einem photogrammetrischen Scan und dem physischen Objekt nennen.
+```
+
+## Was passiert, wenn wir zwei Scans einfach übereinanderblenden?
+
+Nach der Registration aus Kapitel 5 liegen beide Meshes übereinander. Wenn wir
+im 3D Viewer abwechselnd die Sichtbarkeit des einen und des anderen Meshes
+ein- und ausschalten, sehen wir auf den ersten Blick kaum einen Unterschied.
+Die Führungsrille der Kugelbahn liegt an derselben Stelle, die
+charakteristischen Kurven fluchten. Es sieht gut aus.
+
+*Aber reicht der visuelle Eindruck wirklich aus, um die Qualität zu beurteilen?*
+
+Nein. Das menschliche Auge ist kein zuverlässiges Messwerkzeug, insbesondere
+bei Abweichungen im Bereich von Zehntelmillimetern. Eine systematische
+Schrumpfung um 0,3 mm über die gesamte Oberfläche ist mit dem Auge genauso
+unsichtbar wie eine lokale Aufwölbung um 0,5 mm an einer einzelnen Kurve.
+Beide können für die spätere Verwendung des Modells dennoch relevant sein:
+Für ein Bauteil, das mit einer Toleranz von ±0,2 mm in eine Führung passen
+muss, ist eine Abweichung von 0,3 mm bereits zu viel. Das Ziel der
+Abweichungsanalyse ist es, solche Unterschiede nicht nur sichtbar, sondern
+messbar und dokumentierbar zu machen.
+
+```{admonition} Mini-Übung
+:class: tip
+Wir schalten im 3D Viewer abwechselnd zwischen zwei registrierten Meshes hin
+und her. Ein Kommilitone sagt: "Die sehen nahezu identisch aus, eine
+Abweichungsanalyse lohnt sich nicht." Warum ist diese Schlussfolgerung nicht
+korrekt?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+Das visuelle Überblenden zweier Meshes kann nur grobe Unterschiede sichtbar
+machen, die deutlich größer als etwa ein Millimeter sind. Kleinere,
+systematische Abweichungen, zum Beispiel eine flächige Aufwölbung um 0,3 mm
+oder eine gleichmäßige Schrumpfung um 0,2 mm, sind mit dem Auge nicht
+erkennbar. Eine Abweichungsanalyse quantifiziert diese Unterschiede für jeden
+einzelnen Oberflächenpunkt und macht sie erst vergleichbar und
+dokumentierbar. Außerdem kann eine lokal begrenzte, aber starke Abweichung an
+einer kritischen Stelle durch den visuellen Gesamteindruck überdeckt werden.
+````
+
+## Was genau messen wir bei einer Abweichungsanalyse?
+
+Stellen wir uns vor, wir halten ein Messgerät senkrecht an einen Punkt auf der
+Oberfläche unseres gescannten Bauteils und messen den Abstand zur
+Referenzfläche. Das Gerät misst dabei nicht den Abstand zum nächsten
+Datenpunkt in einer Liste, sondern den kürzesten senkrechten Abstand zur
+nächstliegenden Fläche. Genau dieses Prinzip liegt der Abweichungsanalyse
+zugrunde.
+
+Der entscheidende Messwert heißt **Punkt-zu-Oberfläche-Abstand** (englisch:
+point-to-mesh distance). Für jeden Vertex des einen Meshes berechnen wir den
+kürzesten Abstand zur Oberfläche des anderen Meshes. "Oberfläche" bedeutet
+hier nicht einen der diskreten Vertices, sondern das kontinuierliche
+Dreiecksnetz: Wir fällen ein Lot auf das nächstliegende Dreieck, sofern
+das Lot innerhalb dieses Dreiecks liegt.
+
+*Warum nicht einfach den Abstand von Punkt zu Punkt messen?*
+
+Ein reiner Punkt-zu-Punkt-Abstand (englisch: point-to-point distance) würde
+für jeden Vertex des einen Meshes den nächsten Vertex im anderen Mesh suchen.
+Da beide Meshes aus unabhängigen Rekonstruktionen stammen, haben sie
+unterschiedliche Triangulierungen: Ihre Vertices liegen selten an denselben
+geometrischen Stellen der Oberfläche. Das Lot auf die Dreiecksfläche ist
+geometrisch stabiler. Wenn ein Punkt auf dem Ist-Mesh 0,3 mm über der
+entsprechenden Stelle auf dem Soll-Mesh liegt, misst der
+Punkt-zu-Oberfläche-Abstand genau diese 0,3 mm, unabhängig davon, wie die
+Dreiecke beider Meshes aufgeteilt sind.
+
+```{dropdown} Video "Cloud to Mesh Distance – CloudCompare" von Daniel Girardeau-Montaut
+<iframe width="560" height="315" src="https://www.youtube.com/embed/VIDEO_ID"
+title="YouTube video player" frameborder="0" allow="accelerometer; autoplay;
+clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+allowfullscreen></iframe>
+```
+
+```{admonition} Mini-Übung
+:class: tip
+Mesh A hat 50 000 Vertices. Mesh B hat 80 000 Vertices. Wir berechnen den
+Punkt-zu-Oberfläche-Abstand von A nach B.
+
+1. Wie viele Abstandswerte erhalten wir?
+2. Was passiert, wenn wir stattdessen den Abstand von B nach A berechnen?
+   Erhalten wir dieselben Werte?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+1. Wir erhalten 50 000 Abstandswerte: für jeden der 50 000 Vertices von
+   Mesh A einen Abstand zur Oberfläche von Mesh B.
+
+2. Nein, die Werte sind im Allgemeinen nicht identisch. Bei der umgekehrten
+   Richtung (B nach A) erhalten wir 80 000 Abstandswerte, weil Mesh B mehr
+   Vertices hat. Da beide Meshes unterschiedliche Triangulierungen haben,
+   sucht jeder Vertex von B sein Lot auf einer anderen Stelle der
+   Oberfläche von A als umgekehrt. Für die Abweichungsanalyse gilt die
+   Konvention: Das Referenz-Mesh (Soll) ist das Ziel, auf dessen Oberfläche
+   die Lote gefällt werden. Das zu bewertende Mesh (Ist) liefert die
+   Ausgangspunkte.
+````
+
+## Soll und Ist: Welches Mesh ist welches?
+
+In der industriellen Qualitätssicherung ist die Unterscheidung eindeutig: Das
+**Soll-Modell** stammt aus der Konstruktionszeichnung und beschreibt das
+Bauteil so, wie es gefertigt werden soll. Das **Ist-Modell** ist das
+Scan-Ergebnis des tatsächlich gefertigten Teils. Die Abweichungsanalyse
+beantwortet die Frage: Weicht das gefertigte Teil vom Entwurf ab, und wenn
+ja, wo und um wie viel?
+
+In unserem Workflow haben wir kein CAD-Modell der Kugelbahn. Wir haben zwei
+unabhängige photogrammetrische Scans desselben physischen Objekts. Das Prinzip
+bleibt dennoch dasselbe: Wir erklären einen der beiden Scans zum Soll-Mesh
+und den anderen zum Ist-Mesh. Das Soll-Mesh dient als Referenz, an der wir das
+Ist-Mesh messen.
+
+*Welchen Scan wählen wir als Soll?*
+
+Die Wahl ist pragmatisch: Wir nehmen den Scan, der nach der Bereinigung in
+Kapitel 4 die bessere Qualität hat, also weniger Rauschen, eine vollständigere
+Oberfläche und weniger verbleibende Artefakte aufweist. In Abschnitt 6.3
+werden wir diesen Schritt praktisch durchführen und sehen, dass CloudCompare
+beim Starten der Abweichungsberechnung explizit fragt, welches der beiden
+Meshes die Referenz ist.
+
+```{admonition} Mini-Übung
+:class: tip
+Ein Ingenieur möchte prüfen, ob ein 3D-gedrucktes Ersatzteil die
+Fertigungstoleranz von ±0,5 mm einhält. Er hat ein CAD-Modell des Teils und
+einen photogrammetrischen Scan des gedruckten Teils.
+
+1. Welches Modell ist das Soll-Mesh, welches das Ist-Mesh?
+2. Die maximale gemessene Abweichung beträgt 0,8 mm an einer einzelnen Stelle,
+   der mittlere Abstand über die gesamte Oberfläche liegt bei 0,15 mm. Welche
+   Schlussfolgerung zieht er, und reicht die maximale Abweichung allein für
+   eine Aussage aus?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+1. Das CAD-Modell ist das Soll-Mesh. Der photogrammetrische Scan ist das
+   Ist-Mesh.
+
+2. Die maximale Abweichung von 0,8 mm überschreitet die Toleranz von
+   ±0,5 mm. Das gefertigte Teil entspricht an dieser Stelle nicht der
+   Spezifikation. Die maximale Abweichung allein reicht jedoch nicht für
+   eine vollständige Aussage: Sie sagt nicht, ob der Fehler nur an einem
+   einzelnen Punkt oder flächig auftritt. Ein Blick auf die
+   Abweichungskarte aus Abschnitt 6.2 würde zeigen, ob die Überschreitung
+   auf einen kleinen kritischen Bereich begrenzt ist oder ob das gesamte
+   Bauteil außerhalb der Toleranz liegt. Der mittlere Abstand von 0,15 mm
+   deutet darauf hin, dass das Teil insgesamt gut gefertigt wurde und
+   lediglich lokal ein Problem besteht.
+````
+
+## Woher kommen Abweichungen, und wie groß sind sie typischerweise?
+
+Selbst wenn wir dasselbe physische Objekt zweimal sorgfältig scannen und beide
+Scans perfekt registrieren, werden wir immer Abweichungen messen. Die Frage
+ist nicht, ob Abweichungen vorhanden sind, sondern woher sie stammen und ob
+ihre Größe erwartet oder überraschend ist.
+
+Die wichtigste Quelle ist das **Messrauschen der Photogrammetrie**. Jeder
+Merkmalspunkt, den Meshroom aus den Fotos extrahiert, hat eine Unsicherheit:
+Die Pixelposition auf dem Bildsensor ist endlich aufgelöst, die Kalibrierung
+der Linse ist nie perfekt, und Beleuchtungsschwankungen verschieben den
+wahrgenommenen Kontrastpunkt um Subpixel-Beträge. Für handgroße Objekte wie
+unsere Kugelbahn und eine Kamera mit 12 Megapixeln liegt das typische Rauschen
+bei 0,1 bis 0,4 mm.
+
+Eine zweite Quelle sind **Artefakte aus der Bereinigung**. In Kapitel 4 haben
+wir Laplacian Smoothing eingesetzt, um Oberflächenrauschen zu reduzieren.
+Dieser Filter glättet aber nicht nur echtes Rauschen, sondern auch feine
+geometrische Details: Kleine Radien, scharfe Kanten und feine Rillen werden
+durch den Filter leicht abgeflacht. Wenn ein Scan stärker geglättet wurde als
+der andere, spiegelt die Abweichungskarte auch diesen Unterschied wider.
+
+Eine dritte Quelle sind **Registrierungsresiduen**. Selbst nach einem
+erfolgreichen ICP-Lauf ist der RMS-Fehler nicht null, weil ICP kein exaktes
+Überlagern, sondern ein Minimum des quadratischen Abstands findet. Diese
+Residuen liegen typischerweise bei 0,05 bis 0,2 mm und bilden einen
+gleichmäßigen Untergrund in der späteren Abweichungskarte.
+
+Eine vierte Quelle ist das **Material des Objekts**. Glänzende, transparente
+oder einfarbige Oberflächen erzeugen in der Photogrammetrie mehr Rauschen als
+matte, texturierte Flächen, wie wir in Kapitel 2 gesehen haben. An solchen
+Stellen fallen die Abweichungen zwischen zwei Scans systematisch höher aus als
+an gut rekonstruierten Bereichen.
+
+*Wie groß sind die Abweichungen insgesamt, die wir für unsere Kugelbahn
+erwarten können?*
+
+Als Faustformel gilt: Unter guten Bedingungen erreicht die
+Smartphone-Photogrammetrie bei handgroßen Objekten eine Genauigkeit von 0,1
+bis 0,5 mm. An problematischen Stellen, etwa an glänzenden Metallflächen oder
+an schwach texturierten Bereichen, können die Abweichungen auf 1 bis 2 mm
+ansteigen. In Abschnitt 6.2 lernen wir, diese Werte in einer Abweichungskarte
+zu lesen und zu interpretieren.
+
+## Zusammenfassung und Ausblick
+
+In diesem Abschnitt haben wir die konzeptionelle Grundlage der
+Abweichungsanalyse erarbeitet. Das visuelle Überblenden zweier registrierter
+Meshes reicht nicht aus, um Qualitätsaussagen zu treffen. Der entscheidende
+Messwert ist der Punkt-zu-Oberfläche-Abstand: Für jeden Vertex des Ist-Meshes
+fällen wir ein Lot auf die nächstliegende Dreiecksfläche des Soll-Meshes.
+Das Soll-Mesh ist unser Referenzmodell, das Ist-Mesh das zu bewertende
+Ergebnis. Abweichungen entstehen immer aus mehreren Quellen: Messrauschen der
+Photogrammetrie, Artefakte aus der Bereinigung, Registrierungsresiduen und
+materialbedingte Rekonstruktionsfehler.
+
+Im nächsten Abschnitt schauen wir uns an, wie CloudCompare diese
+Abstandswerte visuell aufbereitet: Was bedeutet es, wenn ein Punkt auf der
+Abweichungskarte rot oder blau leuchtet? Wie lesen wir die Farbskala korrekt,
+und wie unterscheiden wir systematische von zufälligen Abweichungen?

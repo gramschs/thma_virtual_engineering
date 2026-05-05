@@ -58,9 +58,7 @@ verbundener geometrischer Grundelemente. Die drei zentralen Bestandteile sind:
   werden. Sie bilden die sichtbare Oberfläche des Modells.
 
 ```{figure} pics/mesh_bestandteile.svg
-:alt: Schematisches Dreiecksnetz mit beschrifteten Bestandteilen: ein gelb
-hervorgehobenes Face, eine orangefarbene Edge und ein orangefarbener Vertex,
-jeweils mit Annotationspfeil.
+:alt: Schematisches Dreiecksnetz mit beschrifteten Bestandteilen: ein gelb hervorgehobenes Face, eine orangefarbene Edge und ein orangefarbener Vertex, jeweils mit Annotationspfeil.
 :align: center
 
 Darstellung der drei Grundelemente eines Dreiecksmeshes: Vertex (Punkt), Edge
@@ -80,9 +78,8 @@ Softwareprogramme, darunter auch PrusaSlicer, erwarten deshalb ausschließlich
 **Dreiecksmeshes** (englisch: "Triangle Meshes").
 
 ```{figure} pics/dreieck_vs_viereck.svg
-:alt: Zwei Panels nebeneinander: links ein flaches Dreieck auf einer
-Referenzebene, rechts ein Viereck, dessen vierter Vertex durch einen
-gestrichelten Höhenindikator als verwölbt markiert ist. :align: center
+:alt: Zwei Panels nebeneinander: links ein flaches Dreieck auf einer Referenzebene, rechts ein Viereck, dessen vierter Vertex durch einen gestrichelten Höhenindikator als verwölbt markiert ist.
+:align: center
 
 Vergleich von Dreieck und Viereck als Mesh-Grundelement: Drei Punkte legen stets
 eine eindeutige Ebene fest; beim Viereck kann der vierte Punkt außerhalb der
@@ -179,11 +176,8 @@ die Druckbahnen korrekt zu berechnen. Ist das Mesh nicht wasserdicht, kann er
 dieses Urteil nicht zuverlässig treffen, und das Druckergebnis ist unbrauchbar.
 
 ```{figure} pics/watertight_konzept.svg
-:alt: Drei Mesh-Querschnitte: links ein geschlossenes Rechteck mit
-Positivzeichen, mittig dasselbe Rechteck mit einer roten Lücke am unteren Rand
-und Wassertropfen darunter, rechts zwei Ellipsen in Figur-8-Form mit einem
-orangefarbenen Non-Manifold-Vertex und Fragezeichen in beiden Schleifen. :align:
-center
+:alt: Drei Mesh-Querschnitte: links ein geschlossenes Rechteck mit Positivzeichen, mittig dasselbe Rechteck mit einer roten Lücke am unteren Rand und Wassertropfen darunter, rechts zwei Ellipsen in Figur-8-Form mit einem orangefarbenen Non-Manifold-Vertex und Fragezeichen in beiden Schleifen.
+:align: center
 
 Darstellung der drei zentralen Wasserdichtigkeitsprobleme: Watertight Mesh
 (geschlossene Kontur), Lücke (Hole) und Non-Manifold Edge (Figur-8-Querschnitt

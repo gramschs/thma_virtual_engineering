@@ -43,12 +43,12 @@ project:
         - file: chapter05/chapter05_sec02.md
         - file: chapter05/chapter05_sec03.md
         - file: chapter05/chapter05_sec04.md
-#    - title: 6. Abweichungsanalyse
-#      children:
-#        - file: chapter06/chapter06_sec01.md
-#        - file: chapter06/chapter06_sec02.md
-#        - file: chapter06/chapter06_sec03.md
-#        - file: chapter06/chapter06_sec04.md
+    - title: 6. Abweichungsanalyse
+      children:
+        - file: chapter06/chapter06_sec01.md
+        - file: chapter06/chapter06_sec02.md
+        - file: chapter06/chapter06_sec03.md
+        - file: chapter06/chapter06_sec04.md
     
 site:
   template: book-theme

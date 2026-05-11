@@ -49,6 +49,12 @@ project:
         - file: chapter06/chapter06_sec02.md
         - file: chapter06/chapter06_sec03.md
         - file: chapter06/chapter06_sec04.md
+    - title: 7. Vom Mesh zum gedruckten Objekt
+      children:
+        - file: chapter07/chapter07_sec01.md
+        - file: chapter07/chapter07_sec02.md
+        - file: chapter07/chapter07_sec03.md
+        - file: chapter07/chapter07_sec04.md
     
 site:
   template: book-theme

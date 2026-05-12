@@ -1,0 +1,291 @@
+---
+kernelspec:
+  name: python3
+  display_name: 'Python 3'
+---
+
+# 7.1 Wie funktioniert FDM-3D-Druck, und welche Parameter entscheiden?
+
+In den vorangegangenen Kapiteln haben wir unsere Kugelbahn digital vermessen:
+bereinigt, registriert und auf Abweichungen analysiert. Das Ergebnis ist ein
+sorgfältig aufbereitetes Mesh, das die Geometrie des physischen Originals so
+genau wie möglich beschreibt. Jetzt kehren wir den Prozess um: Aus dem
+digitalen Modell soll wieder ein physisches Objekt werden. Aber was passiert
+zwischen dem Speichern der Datei und dem ersten fertigen Druck, und welche
+Entscheidungen müssen wir dabei treffen?
+
+## Lernziele
+
+```{admonition} Lernziele
+:class: attention
+* [ ] Sie können den FDM-Druckprozess in seinen wesentlichen Schritten
+  beschreiben und erklären, wie aus einem digitalen Mesh ein physisches
+  Objekt entsteht.
+* [ ] Sie können erklären, was ein Slicer ist, welche Aufgabe er hat und was
+  G-Code bedeutet.
+* [ ] Sie können die fünf wichtigsten Druckparameter (Schichthöhe, Fülldichte,
+  Drucktemperatur, Druckgeschwindigkeit, Stützstrukturen) benennen, erklären
+  und ihren Einfluss auf Qualität und Druckdauer abschätzen.
+* [ ] Sie können für eine gegebene Geometrie wie die Kugelbahn begründen,
+  welche Parameter besonders sorgfältig gewählt werden müssen und warum.
+```
+
+## Wie wird aus einer Datei ein gedrucktes Objekt?
+
+Stellen wir uns eine Heißklebepistole vor, die von einem Roboterarm präzise
+geführt wird: Sie zieht eine dünne Linie auf einer Platte, dann eine zweite
+direkt daneben, bis eine vollständige Fläche entstanden ist. Anschließend
+beginnt dieselbe Bewegung eine hauchdünne Lage höher. Schicht für Schicht
+entsteht so ein dreidimensionales Objekt. Genau dieses Prinzip liegt dem
+FDM-Verfahren zugrunde.
+
+**FDM** steht für **Fused Deposition Modeling** (auf Deutsch:
+Schmelzschichtverfahren). Ein thermoplastischer Kunststofffaden, das
+**Filament**, wird durch eine beheizte Düse (englisch: Nozzle) geführt und
+aufgeschmolzen. Die Nozzle bewegt sich gesteuert in der horizontalen Ebene
+und legt dabei eine Linie aus plastischem Material ab. Wenn eine Schicht
+fertig ist, bewegt sich die Druckplatte oder der Druckkopf um die Höhe
+einer Schicht nach unten beziehungsweise oben, und die nächste Schicht
+beginnt. So wächst das Objekt von unten nach oben.
+
+*Aber warum schichten wir überhaupt? Könnte man das aufgeschmolzene Material
+nicht einfach frei in jede beliebige Form spritzen?*
+
+Die Antwort liegt in der Physik des Abkühlens. Aufgeschmolzenes Thermoplast
+lässt sich nur sehr begrenzt in freier Luft formen: Es braucht in der Regel eine
+feste Unterlage, auf der es erstarrt, bevor die nächste Lage aufgetragen wird.
+Kurze freie Spannweiten ("Bridging") sind zwar möglich, führen aber mit
+zunehmender Länge zu Durchhang und Qualitätsverlust. Das schichtenweise Aufbauen
+ist daher kein konstruktiver Umweg, sondern die direkte Konsequenz dieser
+physikalischen Randbedingung. Der kritischste Schritt ist dabei die allererste
+Lage, die auf der Druckplatte haften muss. Wenn diese Haftung fehlt, ist kein
+stabiler Weiterdruck möglich.
+
+```{figure} pics/chap07_fdm_schichten.svg
+:alt: Schematische Darstellung des FDM-Druckprozesses mit Nozzle, Filament und schichtweise aufgebautem Objekt auf der Druckplatte.
+:align: center
+
+Schematischer Aufbau des FDM-Verfahrens: Das Filament wird durch die Nozzle
+aufgeschmolzen und schichtweise auf der Druckplatte abgelegt.
+(Quelle: eigene Abbildung; Lizenz [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0))
+```
+
+```{admonition} Mini-Übung
+:class: tip
+Wir drucken einen Würfel mit einer Kantenlänge von 30 mm. Die Schichthöhe
+beträgt 0.2 mm, und jede Schicht dauert im Durchschnitt 45 Sekunden.
+
+1. Wie viele Schichten werden insgesamt gedruckt?
+2. Wie lange dauert der Druck in Minuten?
+3. Wie ändert sich die Druckzeit, wenn wir die Schichthöhe auf 0.1 mm
+   halbieren?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+1. Anzahl Schichten = 30 mm / 0.2 mm = 150 Schichten.
+2. Druckzeit = 150 × 45 s = 6 750 s ≈ 113 Minuten, also knapp zwei Stunden.
+3. Bei 0.1 mm Schichthöhe verdoppelt sich die Anzahl der Schichten auf 300.
+   Die Druckzeit steigt näherungsweise auf 226 Minuten, weil jede Schicht
+   bei halbierter Höhe ähnlich lange dauert (die Nozzle fährt dieselben
+   horizontalen Bahnen, nur öfter). Diese Überschlagsrechnung zeigt, warum
+   die Schichthöhe einen so großen Einfluss auf die Gesamtdruckzeit hat.
+````
+
+## Was macht ein Slicer, und wozu ist er da?
+
+Unser bereinigtes Mesh, zum Beispiel als `.ply`- oder `.stl`-Datei, enthält
+nur Geometrie: Vertices, Kanten und Dreiecke. Der 3D-Drucker versteht keine
+Dreiecke. Er versteht Bewegungsbefehle, Temperaturen und Extrusionsmengen.
+Die Übersetzung zwischen diesen beiden Welten übernimmt der **Slicer**.
+
+Ein Slicer (englisch: to slice = schneiden) zerschneidet das Mesh in
+horizontale Schichten und berechnet für jede Schicht, welche Bahnen die Nozzle
+abfahren muss, um die gewünschte Geometrie herzustellen. Das Ergebnis ist ein
+**G-Code**, eine Textdatei mit tausenden von Zeilen wie dieser:
+
+```code
+G1 X52.3 Y41.7 E0.023 F3600
+```
+
+Diese Zeile bedeutet: Fahre mit einer Vorschubgeschwindigkeit von 3600 mm/min
+zur Position (52.3, 41.7 mm) und extrudiere dabei eine bestimmte Menge Filament.
+Die Angabe `E0.023` steht dabei für die Länge des vom Extruder geförderten
+Filaments in Millimetern; zusammen mit dem Filamentdurchmesser lässt sich daraus
+das tatsächlich abgegebene Volumen berechnen. Der G-Code ist die eigentliche
+Maschinensprache des Druckers; er steuert jeden einzelnen Millimeter der
+Nozzle-Bewegung und die dazugehörige Materialextrusion.
+
+Für unseren Workflow stehen zwei weit verbreitete Open-Source-Slicer zur
+Auswahl: **PrusaSlicer** und **Cura**. Beide sind kostenlos, beide
+unterstützen alle Funktionen, die wir benötigen, und beide laufen auf Windows,
+Linux und macOS. Die Anleitungen in Abschnitt 7.3 orientieren sich an
+PrusaSlicer; alle beschriebenen Funktionen sind in Cura analog verfügbar.
+
+```{dropdown} Video "FDM 3D Printing Process" von Stratasys
+<iframe width="560" height="315" src="https://www.youtube.com/embed/VIDEO_ID"
+title="YouTube video player" frameborder="0" allow="accelerometer; autoplay;
+clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+allowfullscreen></iframe>
+```
+
+## Welche Parameter entscheiden über das Ergebnis?
+
+Ein Slicer bietet Dutzende von Einstellungen. Die Erfahrung zeigt jedoch, dass
+fünf Parameter den bei weitem größten Einfluss auf Druckqualität, Stabilität
+und Druckdauer haben. Wir schauen uns jeden davon einzeln an.
+
+### Schichthöhe: Wie dünn soll eine Schicht sein?
+
+Die **Schichthöhe** (englisch: Layer Height) bestimmt, wie dick jede
+einzelne gedruckte Schicht ist. Typische Werte liegen zwischen 0.1 mm (sehr
+fein) und 0.3 mm (grob, aber schnell). Eine kleinere Schichthöhe bedeutet
+mehr Schichten, mehr Druckzeit, aber eine glattere Oberfläche und bessere
+Detailwiedergabe.
+
+Für unsere Kugelbahn ist dieser Parameter besonders kritisch: Die Führungsrille
+hat einen engen Radius, und ihre Form muss eng genug gedruckt werden, damit
+eine Kugel reibungsarm hindurchgleiten kann. Eine grobe Schichthöhe von
+0.3 mm erzeugt gut sichtbare Treppeneffekte an der Rillenkante, die die
+Kugel bremsen oder zum Springen bringen können. In Abschnitt 7.2 werden wir
+sehen, wie dieser Effekt als typischer Druckfehler sichtbar wird.
+
+### Fülldichte: Wie viel soll das Innere gefüllt sein?
+
+Gedruckte Objekte sind innen nicht massiv. Der Slicer erzeugt eine Außenwand
+und füllt das Innere mit einem Gittermuster, dem **Infill**. Die
+**Fülldichte** (englisch: Infill Density) gibt an, wie viel Prozent des
+Innenraums tatsächlich mit Material gefüllt wird.
+
+Ein Wert von 15 bis 20 Prozent ist für die meisten Prototypen ausreichend:
+Das Objekt ist stabil genug für die Handhabung, und der Druck dauert deutlich
+kürzer als bei hoher Füllung. Für mechanisch stark belastete Teile wählt man
+40 bis 60 Prozent. Für unsere Kugelbahn als Demonstrationsobjekt genügen
+20 Prozent Füllung vollkommen.
+
+*Wäre es nicht einfacher, immer 100 Prozent zu wählen und die Überlegung
+zu überspringen?*
+
+Nicht wirklich. Bei 100 Prozent Füllung steigt die Druckzeit erheblich, der
+Materialverbrauch vervierfacht sich gegenüber 25 Prozent, und zu viel Infill
+kann zu Wärmestau im Inneren führen, der Verzug und Schichtablösungen
+begünstigt. Weniger ist hier oft mehr.
+
+### Drucktemperatur: Heiß genug, aber nicht zu heiß
+
+Die **Drucktemperatur** (englisch: Nozzle Temperature) bestimmt, wie flüssig
+das Filament beim Austreten aus der Nozzle ist. Zu niedrig und das Material
+fließt schlecht, reißt ab und hinterlässt Lücken in der Wand. Zu hoch und das
+Material zieht Fäden zwischen nicht verbundenen Bereichen oder verliert seine
+mechanischen Eigenschaften.
+
+Der optimale Bereich hängt vom Material ab. Das am häufigsten eingesetzte
+Prototypenmaterial ist **PLA** (Polymilchsäure, englisch: Polylactic Acid),
+ein biobasierter Kunststoff, der bei 190 bis 220 °C gedruckt wird und unter
+geeigneten industriellen Kompostierbedingungen biologisch abbaubar ist. Für
+mechanisch beanspruchte Teile ist **PETG** (Polyethylenterephthalatglycol)
+verbreitet, mit Nozzle-Temperaturen zwischen 230 und 250 °C. Die Druckplatte
+wird separat beheizt, um die erste Schicht gut haften zu lassen.
+
+| Material | Nozzle (°C) | Druckbett (°C) | Eigenschaften |
+| -------- | ----------- | -------------- | ------------- |
+| PLA | 190–220 | 50–65 | Einfach zu drucken, spröde, unter industriellen Kompostierbedingungen abbaubar |
+| PETG | 230–250 | 70–85 | Zäh, leicht flexibel, geringe Schrumpfung |
+| ABS | 230–250 | 100–110 | Hitzebeständig, stark schrumpfend, anspruchsvoller |
+
+Für unsere Kugelbahn empfiehlt sich PLA: Es ist das einsteigerfreundlichste
+Material, zeigt wenig Verzug, und die mechanischen Anforderungen eines
+Demonstrationsobjekts sind gering.
+
+### Druckgeschwindigkeit: Schnell oder sorgfältig?
+
+Die **Druckgeschwindigkeit** (englisch: Print Speed) gibt an, wie schnell sich
+die Nozzle über die Druckfläche bewegt, typischerweise in mm/s. Höhere
+Geschwindigkeiten sparen Zeit, aber das Material hat weniger Zeit, sich zu
+setzen und mit der darunterliegenden Schicht zu verbinden, was zu schwächeren
+Schichtverbindungen und rauerem Oberflächenbild führt.
+
+Ein vernünftiger Ausgangswert für PLA liegt bei 40 bis 60 mm/s. Die erste
+Schicht und die sichtbaren Außenwände druckt man oft langsamer (20 bis 30 mm/s),
+weil dort die Oberflächenqualität zählt. Das Infill-Muster im Inneren darf
+schneller gedruckt werden (bis 80 mm/s), weil es unsichtbar bleibt.
+
+### Stützstrukturen: Wo brauchen wir eine Stütze?
+
+Ein FDM-Drucker kann nur auf vorhandenem Material aufbauen. Hängt ein Teil des
+Objekts in der Luft und hat keine Unterlage aus der vorigen Schicht, sackt das
+frisch extrudierte Material durch. Bis zu einem Überhangwinkel von etwa 45 Grad
+zur Vertikalen hält das Material durch Eigensteifigkeit. Darüber werden
+**Stützstrukturen** (englisch: Support Structures) benötigt: automatisch
+generierte, abtrennbare Hilfskonstruktionen aus demselben Material.
+
+```{admonition} Mini-Übung
+:class: tip
+Wir drucken die Kugelbahn in ihrer natürlichen Ausrichtung, also so, wie sie
+beim 3D-Scan auf dem Tisch lag. Die Führungsrille hat an einer Stelle einen
+nach unten zeigenden Bogen.
+
+1. Warum braucht dieser Bereich wahrscheinlich eine Stützstruktur?
+2. Welcher Nachteil entsteht, wenn die Stützstruktur nach dem Druck entfernt
+   wird?
+3. Wie könnte eine andere Druckorientierung des Modells dieses Problem
+   entschärfen?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+1. Der nach unten zeigende Bogen der Führungsrille hat an seiner Unterseite
+   keine Material-Unterlage aus der vorigen Schicht. Wenn der Überhangwinkel
+   größer als etwa 45 Grad zur Vertikalen ist, hängt frisch extrudiertes
+   Material zu weit in der Luft und sackt durch, bevor es erstarrt. Eine
+   Stützstruktur füllt den Raum darunter und gibt der hängenden Geometrie eine
+   temporäre Auflagefläche.
+
+2. Stützstrukturen hinterlassen nach dem Entfernen eine raue Oberfläche an
+   der Kontaktstelle. Bei der Führungsrille der Kugelbahn ist das
+   problematisch: Die aufgeraute Unterseite der Rille kann den
+   Rollwiderstand der Kugel erhöhen oder sie aus der Bahn werfen.
+
+3. Wenn wir das Modell um 180 Grad drehen, also die Kugelbahn auf dem Kopf
+   drucken, zeigt der Bogen der Führungsrille nach oben. Die kritische Fläche
+   liegt dann auf der Außenseite der Konvexen und braucht keine Stütze mehr.
+   Allerdings entstehen an anderen Stellen des Modells neue Überhangsituationen,
+   die wir im Slicer prüfen müssen. In Abschnitt 7.3 werden wir sehen, wie
+   die Slicer-Vorschau dabei hilft, die optimale Druckorientierung zu finden.
+````
+
+## Was bedeutet das konkret für unsere Kugelbahn?
+
+Die fünf Parameter sind keine unabhängigen Stellschrauben, sondern bilden ein
+System aus Zielkonflikten: Feine Schichthöhe kostet Zeit, hohe Druckgeschwindigkeit
+kostet Qualität, viel Infill kostet Material. Für unsere Kugelbahn ergibt sich
+aus dieser Abwägung ein sinnvoller Ausgangspunkt:
+
+| Parameter | Empfohlener Wert | Begründung |
+| --------- | ---------------- | ---------- |
+| Schichthöhe | 0.15 mm | Gute Detailwiedergabe der Führungsrille |
+| Fülldichte | 20 % | Ausreichend stabil, überschaubare Druckzeit |
+| Drucktemperatur (PLA) | 205 °C | Mittelwert des typischen Bereichs |
+| Druckgeschwindigkeit | 45 mm/s | Kompromiss aus Zeit und Oberflächenqualität |
+| Stützstrukturen | nur wo nötig | Vermeidung an der Führungsrille durch Orientierung |
+
+Diese Werte sind ein Ausgangspunkt, kein starres Rezept. In Abschnitt 7.3
+werden wir sie im Slicer einstellen, den G-Code erzeugen und die Parameter
+anhand der Slicer-Vorschau beurteilen und wenn nötig anpassen.
+
+## Zusammenfassung und Ausblick
+
+In diesem Abschnitt haben wir den FDM-Druckprozess von Grund auf verstanden.
+Filament wird durch eine beheizte Nozzle aufgeschmolzen und schichtweise auf
+der Druckplatte abgelegt. Der Slicer übersetzt das digitale Mesh in G-Code,
+die Maschinensprache des Druckers. Fünf Parameter dominieren das Ergebnis:
+Schichthöhe, Fülldichte, Drucktemperatur, Druckgeschwindigkeit und
+Stützstrukturen. Jeder bringt einen eigenen Zielkonflikt mit sich, und für die
+Kugelbahn haben wir einen begründeten Ausgangspunkt für die Parameterwahl
+erarbeitet.
+
+Im nächsten Abschnitt schauen wir uns an, was passiert, wenn etwas schiefgeht:
+Welche typischen Druckfehler gibt es, wie sehen sie aus, und auf welche
+Parameterwahl lassen sie sich zurückführen?

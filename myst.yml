@@ -55,6 +55,31 @@ project:
         - file: chapter07/chapter07_sec02.md
         - file: chapter07/chapter07_sec03.md
         - file: chapter07/chapter07_sec04.md
+    - title: 8. 3D-Simulation mit Python
+      children:
+        - file: chapter08/chapter08_sec01.md
+        - file: chapter08/chapter08_sec02.md
+        - file: chapter08/chapter08_sec03.md
+        - file: chapter08/chapter08_sec04.md
+    - title: 9. Von der Kraft zur Bewegung
+      children:
+        - file: chapter09/chapter09_sec01.md
+        - file: chapter09/chapter09_sec02.md
+#        - file: chapter09/chapter09_sec03.md
+#        - file: chapter09/chapter09_sec04.md
+#    - title: 10. Simulation trifft Realität
+#      children:
+#        - file: chapter10/chapter10_sec01.md
+#        - file: chapter10/chapter10_sec02.md
+#        - file: chapter10/chapter10_sec03.md
+#        - file: chapter10/chapter10_sec04.md    
+#        - file: chapter10/chapter10_sec05.md    
+#    - title: 11. Vom Workflow zum Bericht
+#      children:
+#        - file: chapter11/chapter11_sec01.md
+#        - file: chapter11/chapter11_sec02.md
+#        - file: chapter11/chapter11_sec03.md    
+
     
 site:
   template: book-theme

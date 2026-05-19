@@ -24,7 +24,7 @@ Simulation einer Kugelbahn:
 
 ```code
 Fotos aufnehmen → Mesh erzeugen → bereinigen → drucken       → simulieren → vergleichen
-   (Meshroom)      (Meshroom)    (CloudCompare) (PrusaSlicer)  (VPython)   (Präsenztag)
+   (Meshroom)      (Meshroom)    (CloudCompare) (PrusaSlicer)  (Ursina)   (Präsenztag)
 ```
 
 ---
@@ -36,7 +36,7 @@ Fotos aufnehmen → Mesh erzeugen → bereinigen → drucken       → simuliere
 | **Meshroom** | Photogrammetrie: Fotos → Mesh | Windows, Linux |
 | **CloudCompare** | Punktwolke bereinigen, Registration, Abweichungsanalyse | Windows, Linux, macOS |
 | **PrusaSlicer** | Slicing: Mesh → 3D-Druckdatei (alternativ: Cura) | Windows, Linux, macOS |
-| **Python / VPython** | Simulation der Kugelbahn | plattformunabhängig |
+| **Python / Ursina** | Simulation der Kugelbahn | plattformunabhängig |
 
 **Wichtig:** macOS-Nutzer können Meshroom nicht nativ nutzen → ab Kapitel 4
 arbeiten alle Studierenden mit demselben exportierten Mesh.
@@ -50,7 +50,7 @@ arbeiten alle Studierenden mit demselben exportierten Mesh.
 | 1 | 1-2 | Grundlagen, Photogrammetrie, Aufnahme | Meshroom |
 | 2 | 3-6 | Reverse Engineering, Punktwolken, Qualitätssicherung | CloudCompare |
 | 3 | 7-8 | 3D-Druck, Slicing, Auswertung | PrusaSlicer |
-| 4 | 9-11 | Simulation mit Python/VPython | VPython |
+| 4 | 9-11 | Simulation mit Python/Ursina | Ursina |
 | 5 | 12-13 | Zusammenführung, Präsenztag | alle Tools |
 
 ---

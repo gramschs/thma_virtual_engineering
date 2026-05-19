@@ -1,0 +1,318 @@
+---
+kernelspec:
+  name: python3
+  display_name: 'Python 3'
+---
+
+# 8.1 Was ist Ursina, und wie funktioniert es?
+
+Wir haben unsere Kugelbahn digitalisiert, bereinigt und gedruckt. Jetzt wollen
+wir sie zum Leben erwecken: eine Kugel soll die Bahn digital hinunterrollen.
+Dafür brauchen wir ein Werkzeug, das dreidimensionale Objekte in Echtzeit
+darstellen und animieren kann. Dieses Werkzeug heißt **Ursina**, eine
+Python-Bibliothek für interaktive 3D-Anwendungen, die auf der bewährten
+Spiele-Engine Panda3D aufbaut.
+
+## Lernziele
+
+```{admonition} Lernziele
+:class: attention
+* [ ] Sie können Ursina installieren und ein einfaches Python-Skript mit
+  einer 3D-Szene erstellen und ausführen.
+* [ ] Sie können die grundlegende Programmstruktur von Ursina erklären:
+  `app = Ursina()`, `Entity`, `def update()`, `app.run()`.
+* [ ] Sie können das dreidimensionale Koordinatensystem von Ursina beschreiben
+  und einfache Objekte (Kugel, Quader, Zylinder) mit Position, Farbe und
+  Größe erzeugen.
+* [ ] Sie können die Szene mit der `EditorCamera` interaktiv erkunden.
+* [ ] Sie kennen den Unterschied zwischen Ursina und einem Jupyter Notebook
+  und können erklären, warum Ursina-Skripte als eigenständige `.py`-Dateien
+  ausgeführt werden.
+```
+
+## Warum Ursina?
+
+In einem Python-Skript können wir Zahlen berechnen und in der Konsole ausgeben.
+Was uns fehlt, ist die Möglichkeit, diese Zahlen als Bewegung im Raum
+darzustellen. *Warum ist das so wichtig?*
+
+Ein typischer Fehler in physikalischen Simulationen ist ein falsches Vorzeichen
+in der Kraftberechnung. Numerisch ist das Ergebnis eine Zahl; ohne
+Visualisierung bemerken wir den Fehler vielleicht erst nach langem Suchen. Mit
+Ursina sehen wir sofort, wenn die Kugel nach oben statt nach unten
+beschleunigt.
+
+Ursina kombiniert dabei zwei Stärken: die Einfachheit von Python und die
+Leistungsfähigkeit einer echten 3D-Engine. Wir können das bereinigte Mesh
+unserer Kugelbahn aus Kapitel 4 bis 6 direkt als `.obj`-Datei laden und die
+simulierte Kugel auf dem echten Modell rollen lassen. Das werden wir in
+Kapitel 10 tun. Die Grundbausteine dafür erarbeiten wir in diesem Kapitel.
+
+In Kapitel 9 werden wir sehen, wie wir Kräfte und Reibung in die Simulation
+einbauen, sodass die Kugel nicht nur animiert ist, sondern sich physikalisch
+korrekt verhält.
+
+## Installation
+
+````{admonition} Ursina installieren
+:class: warning
+Installieren Sie bitte Ursina mit pip. MacOS-User müssen Python 3.11 nutzen und
+die Module Ursina und Panda3D in einer älteren Version nutzen:
+
+```code
+python -m pip install "ursina<8" "panda3d==1.10.13"
+```
+````
+
+## Das erste Ursina-Programm
+
+Jedes Ursina-Skript folgt derselben Grundstruktur. Hier ist das
+kleinstmögliche lauffähige Beispiel:
+
+```{code-cell} python
+:tags: [skip-execution]
+from ursina import *
+
+app = Ursina()
+
+wuerfel = Entity(model='cube', color=color.orange)
+
+def update():
+    wuerfel.rotation_y += 1
+
+app.run()
+```
+
+Vier Zeilen genügen für eine animierte 3D-Szene. Schauen wir uns die
+Bestandteile genauer an.
+
+### Wie starte ich die Anwendung?
+
+Diese Zeile öffnet das Anwendungsfenster und initialisiert die 3D-Engine.
+Sie steht immer an erster Stelle, vor allen Entities und Funktionen.
+
+### Was ist eine Entity?
+
+Alles, was in der Szene sichtbar ist, ist eine **Entity**, ein Objekt mit
+Eigenschaften wie Position, Größe, Farbe und Modell. Der Parameter `model`
+gibt die Form an (`'cube'`, `'sphere'`, `'cylinder'`), `color` die Farbe.
+
+### Was bewirkt update()?
+
+Diese Funktion wird von Ursina automatisch in jedem Frame aufgerufen,
+typischerweise 60 Mal pro Sekunde. Alles, was sich bewegen oder verändern
+soll, kommt hierher. Die Variable `time.dt` enthält die Zeit in Sekunden,
+die seit dem letzten Frame vergangen ist. Sie ist das Ursina-Äquivalent
+zum Zeitschritt `dt` aus der Physik.
+
+### Wofür steht run()?
+
+Diese Zeile startet die Hauptschleife und muss immer am Ende stehen. Das Skript
+hält an dieser Stelle an, bis das Fenster geschlossen wird.
+
+## Das Koordinatensystem
+
+Ursina verwendet ein rechtshändiges Koordinatensystem:
+
+- **x** zeigt nach rechts
+- **y** zeigt nach oben
+- **z** zeigt aus dem Bildschirm heraus (in Richtung der betrachtenden Person)
+
+Für unsere Kugelbahn bedeutet das: Die Bahn verläuft hauptsächlich entlang
+der x-Achse, die Schwerkraft wirkt in die negative y-Richtung, und die Breite
+der Führungsrille erstreckt sich in z-Richtung.
+
+Alle Positionen werden mit `Vec3(x, y, z)` angegeben:
+
+```{code-cell} python
+:tags: [skip-execution]
+from ursina import *
+
+app = Ursina()
+
+# Drei Kugeln entlang der x-Achse
+Entity(model='sphere', color=color.red,
+       position=Vec3(-2, 0, 0), scale=0.4)
+Entity(model='sphere', color=color.green,
+       position=Vec3( 0, 0, 0), scale=0.4)
+Entity(model='sphere', color=color.blue,
+       position=Vec3( 2, 0, 0), scale=0.4)
+
+EditorCamera()
+app.run()
+```
+
+Und wie wird navigiert? Nach dem Öffnen einmal ins Fenster klicken, damit es den
+Fokus bekommt:
+
+- Rechte Maustaste + Ziehen: Szene drehen
+- Scrollrad: Zoom
+- Mittlere Maustaste + Ziehen: Szene verschieben
+
+## Welche Grundobjekte kennt Ursina?
+
+Ursina bringt einige einfache Grundformen mit, die wir über den Parameter
+`model` auswählen, z.B. `'sphere'` (Kugel) oder `'cube'` (Quader). In allen
+Fällen bleibt das Prinzip gleich: Alles Sichtbare ist eine `Entity`; das
+Modell bestimmt nur die Form.
+
+Die Größe steuern wir über `scale`:
+
+- Für Kugeln verwenden wir einen **skalaren** Wert: `scale` entspricht dem
+  **Durchmesser** des Einheitsmodells. In unserer Konvention bedeutet das:
+  `scale = 2 * r` für eine Kugel mit Radius `r`.
+- Für Quader verwenden wir einen **Vektor** `Vec3(sx, sy, sz)`, der die
+  Ausdehnung in x-, y- und z-Richtung (z.B. als Meter) angibt.
+
+So können wir mit denselben Bausteinen unterschiedliche Körper beschreiben.
+
+### Kugel
+
+```{code-cell} python
+:tags: [skip-execution]
+from ursina import *
+
+app = Ursina()
+
+kugel = Entity(
+    model    = 'sphere',
+    color    = color.red,
+    scale    = 0.1,           # Durchmesser, d.h. Radius = 0.05
+    position = Vec3(0, 0, 0)
+)
+
+EditorCamera()
+app.run()
+```
+
+In Ursina hat ein Einheitsobjekt (`scale=1`) einen Durchmesser von 1. Für
+eine Kugel mit Radius r setzen wir also `scale = 2 * r`.
+
+### Quader
+
+```{code-cell} python
+:tags: [skip-execution]
+from ursina import *
+
+app = Ursina()
+
+rampe = Entity(
+    model    = 'cube',
+    color    = color.gray,
+    scale    = Vec3(1.2, 0.02, 0.12),   # Länge x, Höhe y, Breite z
+    position = Vec3(0, 0, 0)
+)
+
+EditorCamera()
+app.run()
+```
+
+Hier gibt `scale=Vec3(sx, sy, sz)` die Abmessungen des Quaders in x-, y- und
+z-Richtung an. Für unsere Rampe interpretieren wir diese Werte als Meter.
+
+### Zylinder
+
+Bisher haben wir bei `model` immer einen Namen als Text verwendet, z.B. `'cube'`
+oder `'sphere'`. Das sind eingebaute Standardmodelle von Ursina. Für den
+Zylinder gehen wir einen kleinen Schritt weiter: Wir verwenden ein prozedurales
+Modell `Cylinder(...)`, das zur Laufzeit erzeugt wird. Wichtig ist dabei: Alles
+Sichtbare bleibt eine Entity. Der Zylinder ist weiterhin eine Entity, nur der
+Wert von `model` ist diesmal kein String, sondern ein erzeugtes Mesh-Objekt:
+
+- Entity(...) beschreibt Position, Farbe und Größe.
+- `model=Cylinder(...)` sagt: Verwende dieses Zylinder-Mesh als Form der Entity.
+
+Damit lernen wir neben den vordefinierten Modellnamen auch eine zweite
+Möglichkeit kennen, Formen zu erzeugen, ohne dass sich das Grundprinzip ändert:
+Jede sichtbare Sache ist eine Entity, und `model` kann entweder ein Modellname
+(String) oder ein prozedurales Modell wie `Cylinder(...)` sein.
+
+```{code-cell} python
+:tags: [skip-execution]
+from ursina import *
+
+app = Ursina()
+
+# Liegender Zylinder entlang der x-Achse
+schiene = Entity(
+    model    = Cylinder(radius=0.008, height=1.0, direction=(1, 0, 0)),
+    color    = color.gray,
+    position = Vec3(0, 0, 0)
+)
+
+EditorCamera()
+app.run()
+```
+
+```{admonition} Mini-Übung
+:class: tip
+Erstellen Sie eine Szene mit drei Objekten:
+
+1. Einen grauen Quader an `Vec3(0, 0, 0)` mit `scale=Vec3(1.0, 0.02, 0.15)`.
+2. Eine rote Kugel an `Vec3(-0.4, 0.06, 0)` mit `scale=0.08`.
+3. Einen blauen Zylinder an `Vec3(0, 0.5, 0)` mit Radius 0.01 und Höhe 1.0.
+
+Fügen Sie `EditorCamera()` hinzu und erkunden Sie die Szene.
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+```python
+from ursina import *
+
+app = Ursina()
+
+Entity(model='cube',   color=color.gray, scale=Vec3(1.0, 0.02, 0.15),
+       position=Vec3(0, 0, 0))
+
+Entity(model='sphere', color=color.red,  scale=0.08,
+       position=Vec3(-0.4, 0.06, 0))
+
+Entity(
+    model    = Cylinder(radius=0.01, height=1.0, direction=(0, 1, 0)),
+    color    = color.blue,
+    position = Vec3(0, 0.5, 0)
+)
+
+EditorCamera()
+app.run()
+```
+````
+
+## Wie stelle ich Farben und das Fenster ein?
+
+Ursina kennt vordefinierte Farben (`color.red`, `color.green`, `color.blue`,
+`color.orange`, `color.gray`, `color.white`, `color.black` und weitere) sowie
+eigene RGB-Farben mit `color.rgb(r, g, b)`, wobei die Werte zwischen 0 und 255
+liegen.
+
+Das Fenster lässt sich beim Start konfigurieren:
+
+```{code-cell} python
+:tags: [skip-execution]
+from ursina import *
+
+app = Ursina(title='Kugelbahn: Simulation')
+window.size = Vec2(1200, 700)
+window.color = color.white
+
+# Objekte...
+Entity(model='sphere', color=color.red, scale=0.1)
+
+EditorCamera()
+app.run()
+```
+
+## Zusammenfassung und Ausblick
+
+In diesem Abschnitt haben wir Ursina als 3D-Bibliothek für Python
+kennengelernt. Jedes Skript besteht aus `app = Ursina()`, Entities mit Modell,
+Farbe und Position, der `update()`-Funktion für Animationen und `app.run()`
+zum Starten. Das Koordinatensystem ist rechtshändig mit y nach oben, Positionen
+werden mit `Vec3(x, y, z)` angegeben, und `scale` gibt den Durchmesser an.
+Mit `EditorCamera` lässt sich die Szene interaktiv erkunden.
+
+Im nächsten Abschnitt bringen wir die Kugel zum Rollen: Wir lernen, wie die
+`update()`-Funktion im Detail funktioniert, was `time.dt` bedeutet und wie wir
+ein Objekt mit einer Geschwindigkeit durch den Raum bewegen.

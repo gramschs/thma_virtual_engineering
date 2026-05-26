@@ -29,7 +29,7 @@ korrigieren Sie die falschen Aussagen in einem Satz.
 | --- | -------------- | --------- |
 | 1 | **Falsch** | Die Normalkraft beträgt `F_N = m·g·cos(θ)` und ist nur bei θ = 0° gleich groß wie die Gewichtskraft. Bei geneigter Fläche ist sie kleiner. |
 | 2 | **Falsch** | Es gilt stets μ_H > μ_G, also ist die maximale Haftreibungskraft größer als die Gleitreibungskraft. Deshalb ist es schwerer, ein Objekt in Bewegung zu setzen, als es in Bewegung zu halten. |
-| 3 | **Richtig** | `θ_krit = arctan(μ_H)` – Masse und Erdbeschleunigung kürzen sich heraus. |
+| 3 | **Richtig** | `θ_krit = arctan(μ_H)`, Masse und Erdbeschleunigung kürzen sich heraus. |
 | 4 | **Richtig** | Damit die Kugel stoppt, müsste die Nettokraft null werden, also `F_H = F_Gleit`, was `tan(θ) = μ_G` bedeutet. Da `μ_G < μ_H`, liegt dieser Winkel unterhalb des kritischen Winkels. Bei konstantem Winkel oberhalb von `θ_krit` bleibt die Nettokraft positiv und die Kugel stoppt nicht. |
 ````
 
@@ -94,7 +94,7 @@ Kritische Winkel:
   Holz auf Holz:   θ_krit = 21.8°
 
 Schwerlastrolle (θ=12°, Stahl):
-  Gleitet: F_netto = 3.481 N, a = 0.696 m/s²
+  Gleitet: F_netto = 5.400 N, a = 1.080 m/s²
 
 Holzeisenbahn: θ_krit = 21.8°
 ```
@@ -163,18 +163,15 @@ fig.show()
 
 ````{admonition} Übung 9.4 (✩✩)
 :class: tip
-**Ursina: Spurpunkte und Kraftindikator ergänzen**
+**Ursina: Dynamischer Neigungswinkel**
 
 Nehmen Sie den vollständigen Starter-Code aus Abschnitt 9.3 als Ausgangspunkt
-und erweitern Sie ihn um zwei Elemente:
+und erweitern Sie ihn um einen dynamischen Neigungswinkel:
 
-1. **Spurpunkte:** Setzen Sie alle 0.05 s einen kleinen türkisen Spurpunkt
-   an der aktuellen Kugelposition (analog zu Kapitel 8.2).
-2. **Dynamischer Neigungswinkel:** Fügen Sie zwei Tastenbefehle hinzu:
-   - Taste `u` erhöht `NEIGUNGSWINKEL` um 1° und berechnet alle Kräfte neu.
-   - Taste `d` verringert `NEIGUNGSWINKEL` um 1° (Minimum: 1°).
-   - Nach jeder Änderung soll die Kugel in ihre Startposition zurückgesetzt
-     und die Simulation neu gestartet werden.
+- Taste `u` erhöht `NEIGUNGSWINKEL` um 1° und berechnet alle Kräfte neu.
+- Taste `d` verringert `NEIGUNGSWINKEL` um 1° (Minimum: 1°).
+- Nach jeder Änderung soll die Kugel in ihre Startposition zurückgesetzt
+  und die Simulation neu gestartet werden.
 
 Hinweis: Tastatureingaben in Ursina werden über die eingebaute Funktion
 `input(key)` abgefangen:
@@ -194,14 +191,13 @@ def input(key):
 from ursina import *
 import math
 
-app = Ursina(title='Kugelbahn – Dynamischer Winkel', width=1200, height=700)
+app = Ursina(title='Kugelbahn: Dynamischer Winkel', width=1200, height=700)
 window.color = color.white
 
 BAHNLAENGE  = 1.0
 KUGELRADIUS = 0.04
 m, G        = 0.1, 9.81
 MU_H, MU_G  = 0.35, 0.25
-SPUR_INT    = 0.05
 
 neigungswinkel = [20.0]   # als Liste, damit input() darauf zugreifen kann
 
@@ -227,26 +223,20 @@ winkel_text = Text(text=f'θ = {neigungswinkel[0]:.0f}°  (u/d zum Ändern)',
                    position=(-0.85, 0.40), scale=1.2, color=color.black)
 EditorCamera()
 
-spurpunkte         = []
-geschwindigkeit    = [0.0]
-t_sim              = [0.0]
-gleitet            = [False]
-laeuft             = [True]
-spur_timer         = [0.0]
+geschwindigkeit = [0.0]
+t_sim           = [0.0]
+gleitet         = [False]
+laeuft          = [True]
 
 F_N, F_H, F_HAFT_MAX, F_GLEIT = berechne_kraefte(neigungswinkel[0])
 
 def reset():
-    for s in spurpunkte:
-        destroy(s)
-    spurpunkte.clear()
     kugel.x            = START_X
     geschwindigkeit[0] = 0.0
     t_sim[0]           = 0.0
-    spur_timer[0]      = 0.0
     laeuft[0]          = True
-    kugel.color        = color.orange if F_H > F_HAFT_MAX else color.red
     gleitet[0]         = F_H > F_HAFT_MAX
+    kugel.color        = color.orange if gleitet[0] else color.red
 
 reset()
 
@@ -261,12 +251,6 @@ def update():
     geschwindigkeit[0] += a * time.dt
     kugel.x            += geschwindigkeit[0] * time.dt
     t_sim[0]           += time.dt
-    spur_timer[0]      += time.dt
-    if spur_timer[0] >= SPUR_INT:
-        spurpunkte.append(
-            Entity(model='sphere', color=color.cyan,
-                   scale=0.015, position=kugel.position))
-        spur_timer[0] = 0.0
     status.text = (f"θ = {neigungswinkel[0]:.0f}°\n"
                    f"t = {t_sim[0]:.3f} s\n"
                    f"v = {geschwindigkeit[0]:.3f} m/s")
@@ -281,7 +265,7 @@ def input(key):
         neigungswinkel[0] = max(1.0, neigungswinkel[0] - 1.0)
     else:
         return
-    winkel_text.text         = f'θ = {neigungswinkel[0]:.0f}°  (u/d)'
+    winkel_text.text              = f'θ = {neigungswinkel[0]:.0f}°  (u/d)'
     F_N, F_H, F_HAFT_MAX, F_GLEIT = berechne_kraefte(neigungswinkel[0])
     reset()
 
@@ -399,9 +383,8 @@ Ausgangspunkt und wählen Sie den passenden Pfad.
    für das reale Objekt?
 
 3. **Ursina-Simulation:** Implementieren Sie die Simulation mit mindestens:
-   - Zwei Kraftindikatoren (Hangabtrieb und Reibungskraft).
-   - Spurpunkten alle 0.05 s.
-   - Einer Textanzeige mit Zeit, Geschwindigkeit und Zustand.
+   - zwei Kraftindikatoren (Hangabtrieb und Reibungskraft) und
+   - einer Textanzeige mit Zeit, Geschwindigkeit und Zustand.
 
 4. **Analytischer Vergleich:** Berechnen Sie die analytische Bewegungszeit
    und vergleichen Sie mit der Simulation. Wie groß ist die Abweichung?

@@ -90,7 +90,7 @@ geschwindigkeit = 0.0
 # Zustandsübergang prüfen
 if not gleitet and F_H > F_HAFT_MAX:
     gleitet = True
-    print("Haftreibung überwunden – Objekt beginnt zu gleiten.")
+    print("Haftreibung überwunden, das Objekt beginnt zu gleiten.")
 
 # Beschleunigung berechnen
 if gleitet:

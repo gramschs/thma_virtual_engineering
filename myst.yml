@@ -65,8 +65,8 @@ project:
       children:
         - file: chapter09/chapter09_sec01.md
         - file: chapter09/chapter09_sec02.md
-#        - file: chapter09/chapter09_sec03.md
-#        - file: chapter09/chapter09_sec04.md
+        - file: chapter09/chapter09_sec03.md
+        - file: chapter09/chapter09_sec04.md
 #    - title: 10. Simulation trifft Realität
 #      children:
 #        - file: chapter10/chapter10_sec01.md

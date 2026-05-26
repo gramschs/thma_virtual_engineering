@@ -9,9 +9,14 @@ kernelspec:
 Wir haben das Kraftmodell in Python übersetzt: Zustandsübergang, Euler-Cromer-
 Schritt, analytischer Vergleich. Jetzt bringen wir dieses Modell zum Leben.
 In diesem Abschnitt bauen wir Schritt für Schritt eine Ursina-Simulation, in
-der die Kugel mit echter Reibungsphysik gleitet, farbige Kraftindikatoren
+der die Kugel nach dem Coulomb-Reibungsmodell gleitet, farbige Kraftindikatoren
 sich in Echtzeit aktualisieren und eine Textanzeige den Zustand (Haften oder
 Gleiten) sichtbar macht.
+
+Wir behandeln die Kugel dabei als gleitenden Punktkörper, also wie einen
+kleinen Block ohne Rotationsfreiheitsgrad. Rollreibung und Rotationsenergie
+spielen in diesem Modell keine Rolle; wer sich fragt, warum die Kugel nicht
+rollt, dem sei versichert: Das kommt in Kapitel 10.
 
 ## Lernziele
 
@@ -41,15 +46,16 @@ Am Ende dieses Abschnitts läuft ein Simulator mit folgenden Eigenschaften:
 ## Schritt 1: Szene und Parameter einrichten
 
 ```{code-cell} python
+:tags: [skip-execution]
 from ursina import *
 import math
 
-app = Ursina(title='Kugelbahn – Simulation mit Reibung',
+app = Ursina(title='Kugelbahn: Simulation mit Reibung',
              width=1200, height=700)
 window.color = color.white
 
 # Physikalische Parameter
-NEIGUNGSWINKEL = 20.0
+NEIGUNGSWINKEL = 15.0
 BAHNLAENGE     = 1.0
 KUGELRADIUS    = 0.04
 m              = 0.1
@@ -82,7 +88,20 @@ relative Größe der Kraft. Ein orangefarbener Quader, der sich mit der Kugel
 mitbewegt und je nach Beschleunigung länger oder kürzer wird, vermittelt
 dieselbe Information wie ein Pfeil.
 
+```{admonition} Hinweis zur Szenengeometrie
+:class: note
+Die Rampe wird im Code als horizontaler Quader dargestellt; eine Rotation
+um `NEIGUNGSWINKEL` ist nicht eingebaut. Die Kraftindikatoren zeigen daher
+nicht die exakten Richtungen an einer geneigten Ebene (Hangabtrieb parallel
+zur Rampe, Normalkraft senkrecht dazu), sondern vereinfacht horizontal und
+vertikal. Für eine korrekte Kräftedarstellung müsste die Rampe mit
+`rampe.rotation_z = -NEIGUNGSWINKEL` rotiert und die Pfeilrichtungen
+entsprechend transformiert werden. In Kapitel 10, wenn wir reale Wegpunkte
+aus dem CloudCompare-Mesh einsetzen, werden wir genau das tun.
+```
+
 ```{code-cell} python
+:tags: [skip-execution]
 # Rampe
 rampe = Entity(
     model    = 'cube',
@@ -91,7 +110,7 @@ rampe = Entity(
     position = Vec3(0, 0, 0)
 )
 
-# Kugel – startet rot (Haft-Zustand), wechselt auf Orange beim Gleiten
+# Kugel startet rot (Haft-Zustand), wechselt auf Orange beim Gleiten
 kugel = Entity(
     model    = 'sphere',
     color    = color.red,
@@ -115,14 +134,15 @@ pfeil_FG = Entity(model='cube', color=color.blue,
 ## Schritt 3: Legende und Statusanzeige
 
 ```{code-cell} python
+:tags: [skip-execution]
 # Farbige Legende (statisch, oben links)
-Text("● Orange: Hangabtrieb F_H",  position=(-0.85, 0.45), scale=1.1,
+Text("Orange: Hangabtrieb F_H",  position=(-0.85, 0.45), scale=1.1,
      color=color.orange)
-Text("● Lila:   Reibungskraft F_R", position=(-0.85, 0.41), scale=1.1,
+Text("Lila:   Reibungskraft F_R", position=(-0.85, 0.41), scale=1.1,
      color=color.violet)
-Text("● Grün:   Normalkraft F_N",   position=(-0.85, 0.37), scale=1.1,
+Text("Grün:   Normalkraft F_N",   position=(-0.85, 0.37), scale=1.1,
      color=color.green)
-Text("● Blau:   Gewichtskraft F_G", position=(-0.85, 0.33), scale=1.1,
+Text("Blau:   Gewichtskraft F_G", position=(-0.85, 0.33), scale=1.1,
      color=color.blue)
 
 # Dynamische Statusanzeige (oben rechts)
@@ -142,6 +162,7 @@ Bevor die Schleife startet, prüfen wir einmalig, ob das Objekt sofort gleitet
 oder zunächst haftet:
 
 ```{code-cell} python
+:tags: [skip-execution]
 geschwindigkeit = 0.0
 t_sim           = 0.0
 gleitet         = F_H > F_HAFT_MAX   # sofort gleiten, falls Winkel groß genug
@@ -161,16 +182,17 @@ Jetzt alles zusammen als eine lauffähige Datei, zum Beispiel
 `kugelbahn_09.py`:
 
 ```{code-cell} python
+:tags: [skip-execution]
 from ursina import *
 import math
 
 # --- Anwendung ---
-app = Ursina(title='Kugelbahn – Simulation mit Reibung',
+app = Ursina(title='Kugelbahn: Simulation mit Reibung',
              width=1200, height=700)
 window.color = color.white
 
 # --- Parameter ---
-NEIGUNGSWINKEL = 20.0
+NEIGUNGSWINKEL = 15.0
 BAHNLAENGE     = 1.0
 KUGELRADIUS    = 0.04
 m              = 0.1
@@ -270,25 +292,52 @@ def update():
 app.run()
 ```
 
+```{admonition} Hinweis: Was passiert im Haftfall?
+:class: note
+Bei θ = 15° und μ_H = 0.35 bleibt die Kugel dauerhaft stehen. Die
+`update()`-Schleife läuft weiter, zeigt aber konstant „Haften, v = 0" an,
+und `kugel.x >= ENDE_X` wird nie wahr. Die Simulation endet daher nicht
+automatisch. Das ist physikalisch korrekt, kann aber unerwartet wirken.
+Zum Beenden einfach das Ursina-Fenster schließen. Um den Gleitfall zu
+beobachten, `NEIGUNGSWINKEL` auf 20° oder mehr erhöhen.
+```
+
 ```{admonition} Checkliste: Was prüfen wir nach dem ersten Lauf?
 :class: note
-* **Anfangszustand korrekt:** Bei θ = 20° und μ_H = 0.35 bleibt die Kugel
-  zunächst stehen (Kugel ist rot).
-* **Farbe wechselt:** Wenn `NEIGUNGSWINKEL` auf 25° erhöht wird, startet die
-  Kugel sofort orange.
+* **Anfangszustand korrekt:** Bei θ = 15° und μ_H = 0.35 bleibt die Kugel
+  zunächst stehen (Kugel ist rot), weil θ < θ_krit ≈ 19.3°.
+* **Farbe wechselt beim Start:** Wenn `NEIGUNGSWINKEL` auf 20° oder mehr
+  erhöht wird, startet die Kugel sofort orange (θ > θ_krit).
+* **Kein dynamischer Übergang bei konstantem Winkel:** Bei festem Winkel
+  wird die Haft-/Gleit-Entscheidung einmalig bei t = 0 getroffen. Einen
+  echten Übergang während der Bewegung werden wir in Kapitel 10 sehen,
+  wenn der Neigungswinkel entlang der realen Bahn variiert.
 * **Indikatoren bewegen sich mit:** Alle vier Kraftindikatoren folgen der
   Kugel.
-* **Reibungsindikator skaliert:** Der lila Indikator wechselt beim
-  Zustandsübergang von F_Haft auf F_Gleit (kürzer, weil μ_G < μ_H).
+* **Reibungsindikator skaliert:** Im Gleitzustand ist der lila Indikator
+  kürzer als der orange, weil F_Gleit = μ_G · F_N und F_Gleit < F_H
+  (es gilt μ_G < μ_H und θ > θ_krit, also ist die Gleitreibungskraft
+  kleiner als der Hangabtrieb, der die Kugel antreibt).
 * **Konsole:** Nach dem Stopp erscheinen Bewegungszeit und Endgeschwindigkeit.
 ```
 
 ## Schritt 6: Ergebnis prüfen
 
+Bei den Standardparametern (θ = 15°, μ_H = 0.35) haftet die Kugel dauerhaft;
+ein analytischer Vergleich von Endgeschwindigkeit und Bewegungszeit macht
+dort keinen Sinn. Wir wechseln daher für diesen Schritt auf θ = 20°, womit
+θ > θ_krit ≈ 19.3° gilt und die Kugel sofort gleitet. Dazu muss in der
+Ursina-Simulation `NEIGUNGSWINKEL = 20.0` gesetzt werden, bevor
+`app.run()` aufgerufen wird.
+
+Die analytische Lösung für gleichmäßig beschleunigte Bewegung mit
+konstanter Gleitreibung lautet:
+
 ```{code-cell} python
+:tags: [skip-execution]
 import math
 
-NEIGUNGSWINKEL = 20.0
+NEIGUNGSWINKEL = 20.0   # Gleitfall: θ > θ_krit
 G, MU_G        = 9.81, 0.25
 BAHNLAENGE     = 1.0
 KUGELRADIUS    = 0.04
@@ -312,9 +361,9 @@ einschätzen.
 
 ```{admonition} Mini-Übung
 :class: tip
-Verändern Sie `MU_H` schrittweise von 0.35 auf 0.15. Beobachten Sie:
+Verändern Sie `NEIGUNGSWINKEL` schrittweise von 15° auf 25°. Beobachten Sie:
 
-1. Ab welchem Wert beginnt die Kugel sofort zu gleiten (kein roter
+1. Ab welchem Winkel beginnt die Kugel sofort zu gleiten (kein roter
    Anfangszustand)?
 2. Berechnen Sie den kritischen Winkel für `MU_H = 0.35` analytisch und
    vergleichen Sie mit Ihrer Beobachtung.
@@ -328,7 +377,7 @@ Verändern Sie `MU_H` schrittweise von 0.35 auf 0.15. Beobachten Sie:
 ```python
 import math
 
-G, NEIGUNGSWINKEL = 9.81, 20.0
+G, NEIGUNGSWINKEL = 9.81, 15.0
 
 # Zu 1: Kritischer Winkel
 for mu_h in [0.35, 0.30, 0.25, 0.20, 0.15]:
@@ -346,17 +395,19 @@ for mu_g in [0.25, 0.10]:
     print(f"μ_G = {mu_g:.2f}: v_end = {v_end:.3f} m/s")
 ```
 
-Ausgabe:
+Ausgabe (für θ = 15°):
 ```
-μ_H = 0.35: θ_krit = 19.3°  → sofort gleiten: True
-μ_H = 0.30: θ_krit = 16.7°  → sofort gleiten: True
+μ_H = 0.35: θ_krit = 19.3°  → sofort gleiten: False
+μ_H = 0.30: θ_krit = 16.7°  → sofort gleiten: False
+μ_H = 0.25: θ_krit = 14.0°  → sofort gleiten: True
 ...
-μ_G = 0.25: v_end = 2.127 m/s
-μ_G = 0.10: v_end = 2.487 m/s
+μ_G = 0.25: v_end = 1.335 m/s
+μ_G = 0.10: v_end = 1.731 m/s
 ```
 
-Ab θ_krit ≈ 19.3° gilt für μ_H = 0.35, dass der Neigungswinkel von 20°
-bereits darüber liegt – die Kugel gleitet also sofort. Mit geringerer
+Bei θ = 15° und μ_H = 0.35 liegt der Neigungswinkel unterhalb des kritischen
+Winkels (19.3°), die Kugel bleibt also zunächst im Haftzustand. Erst ab
+μ_H ≈ 0.27 (θ_krit ≈ 15°) beginnt sofortiges Gleiten. Mit geringerer
 Gleitreibung steigt die Endgeschwindigkeit deutlich.
 ````
 
@@ -367,13 +418,14 @@ Anpassungen auf jedes translatorische Objekt übertragen lässt. Die mit
 `# ANPASSEN` markierten Stellen müssen für das eigene Objekt geändert werden:
 
 ```{code-cell} python
+:tags: [skip-execution]
 from ursina import *
 import math
 
-app = Ursina(title='Mein Objekt – Simulation')  # ANPASSEN
+app = Ursina(title='Mein Objekt: Simulation')  # ANPASSEN
 window.color = color.white
 
-# Parameter – ANPASSEN
+# Parameter, bitte ANPASSEN
 m               = 0.2        # Masse in kg
 NEIGUNGSWINKEL  = 15.0       # Neigungswinkel in Grad
 BAHNLAENGE      = 0.8        # Länge in m
@@ -390,7 +442,7 @@ F_GLEIT    = MU_G * F_N
 START_X    = -(BAHNLAENGE / 2) + KUGELRADIUS
 ENDE_X     =  (BAHNLAENGE / 2) - KUGELRADIUS
 
-# Objekte – ANPASSEN (Farbe, Größe)
+# Objekte, bitte ANPASSEN (Farbe, Größe)
 Entity(model='cube', color=color.gray,
        scale=Vec3(BAHNLAENGE, 0.02, 0.15), position=Vec3(0, 0, 0))
 objekt = Entity(model='sphere', color=color.cyan,  # ANPASSEN

@@ -56,7 +56,7 @@ window.color = color.white
 
 # Physikalische Parameter
 NEIGUNGSWINKEL = 15.0
-BAHNLAENGE     = 1.0
+BAHNLAENGE     = 5.0
 KUGELRADIUS    = 0.04
 m              = 0.1
 G              = 9.81
@@ -193,7 +193,7 @@ window.color = color.white
 
 # --- Parameter ---
 NEIGUNGSWINKEL = 15.0
-BAHNLAENGE     = 1.0
+BAHNLAENGE     = 5.0
 KUGELRADIUS    = 0.04
 m              = 0.1
 G              = 9.81

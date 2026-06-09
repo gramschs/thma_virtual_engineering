@@ -1,0 +1,192 @@
+---
+kernelspec:
+  name: python3
+  display_name: 'Python 3'
+---
+
+# 10.4 Ursina: Das echte Mesh in Bewegung
+
+In Abschnitt 10.3 haben wir die Simulation als Liste von Zeitstempeln und
+Geschwindigkeiten berechnet. Aber eine Tabelle voller Zahlen ist kein
+überzeugendes Ergebnis. Das bereinigte Mesh unserer Kugelbahn, das wir in
+den Kapiteln 4 bis 6 mit CloudCompare aufbereitet haben, wartet als
+`.obj`-Datei auf uns. Jetzt laden wir es in Ursina, setzen die Kugel auf
+das echte Modell und spielen die berechnete Trajektorie als 3D-Animation ab.
+
+## Lernziele
+
+```{admonition} Lernziele
+:class: attention
+* [ ] Sie können erklären, warum Physikberechnung und Visualisierung in
+  getrennten Schritten implementiert werden, und den Vorteil dieser Trennung
+  benennen.
+* [ ] Sie können eine vorberechnete Trajektorie als Liste von Positionen und
+  Zeitstempeln speichern.
+* [ ] Sie können ein `.obj`-Mesh aus CloudCompare in Ursina laden, skalieren
+  und korrekt ausrichten.
+* [ ] Sie können die Trajektorie mit `np.searchsorted` framegenau in der
+  `update()`-Schleife abspielen.
+```
+
+## Warum trennen wir Physik und Darstellung?
+
+In Kapitel 9 haben wir Physik und Ursina direkt kombiniert: Die
+`update()`-Schleife berechnete die Physik und bewegte die Kugel gleichzeitig.
+Das funktioniert gut für eine einfache gerade Rampe. Für die vollständige
+segmentweise Simulation aus Abschnitt 10.3 wäre dieser Ansatz jedoch
+problematisch.
+
+*Warum?*
+
+Die segmentweise Schleife in 10.3 läuft mit einem festen Zeitschritt von
+0.005 s. Ursinas `update()`-Schleife läuft mit der Framerate des Rechners,
+typischerweise 60 fps, was `time.dt ≈ 0.017 s` ergibt. Diese unterschiedlichen
+Zeitskalen würden die Physik ungenau machen.
+
+Die saubere Lösung ist die Trennung: Wir berechnen die gesamte Trajektorie
+einmalig in reinem Python mit festem Zeitschritt, speichern sie als Liste und
+lassen Ursina diese Liste framegenau abspielen. Die Physik ist damit
+unabhängig vom Rechner, und Ursina kümmert sich nur um die Darstellung.
+
+## Schritt 1: Trajektorie vorberechnen
+
+Wir erweitern die Simulationsfunktion aus Abschnitt 10.3 so, dass sie nicht
+nur die Endwerte, sondern die vollständige 3D-Position in jedem Zeitschritt
+zurückgibt:
+
+```{code-cell} python
+import numpy as np
+import math
+
+def bahn_aus_wegpunkten(wegpunkte):
+    """
+    Berechnet Segmentlängen und lokale Neigungswinkel.
+
+    Annahme: Wegpunkte als (x, y, z) in m, z ist die Höhenkoordinate.
+    """
+    laengen, winkel_rad = [], []
+    for i in range(len(wegpunkte) - 1):
+        delta  = wegpunkte[i+1] - wegpunkte[i]
+        laenge = np.linalg.norm(delta)
+        # horizontale Distanz in der x-y-Ebene
+        delta_horiz = np.sqrt(delta[0]**2 + delta[1]**2)
+        # Neigung: z als Höhe
+        theta = np.arctan2(delta[2], delta_horiz)
+        laengen.append(laenge)
+        winkel_rad.append(theta)
+    return np.array(laengen), np.array(winkel_rad)
+
+
+# Wegpunkte (aus Abschnitt 10.1/10.3, z = Höhe, negativ bergab)
+wegpunkte = np.array([
+    [0.00, 0.000,  0.000],
+    [0.12, 0.010, -0.030],  # steil
+    [0.25, 0.020, -0.050],  # flacher
+    [0.38, 0.025, -0.065],
+    [0.51, 0.030, -0.075],
+    [0.63, 0.025, -0.090],
+    [0.76, 0.015, -0.105],
+    [0.88, 0.005, -0.115],
+    [1.00, 0.000, -0.120],
+])
+
+# Physikparameter (wie in 10.3)
+m    = 0.1      # Masse in kg
+G    = 9.81     # Erdbeschleunigung in m/s²
+MU_H = 0.20     # Haftreibungskoeffizient
+MU_G = 0.15     # Gleitreibungskoeffizient
+dt   = 0.005    # Zeitschritt in s
+
+
+def simuliere_trajektorie(wegpunkte, m=0.1, G=9.81,
+                          MU_H=0.20, MU_G=0.15, dt=0.005):
+    """
+    Berechnet die vollständige Trajektorie als Liste von (Zeit, 3D-Position).
+
+    Annahmen:
+        - Wegpunkte als (x, y, z) in m, z ist die Höhenkoordinate.
+        - Reibungsmodell wie in Abschnitt 10.3 (F_H_along, Haft-/Gleitreibung).
+    Rückgabe:
+        trajektorie : list of (t, np.array([x, y, z]))
+    """
+    laengen, winkel_rad = bahn_aus_wegpunkten(wegpunkte)
+    trajektorie = [(0.0, wegpunkte[0].copy())]
+
+    v = 0.0   # Anfangsgeschwindigkeit
+    t = 0.0   # Gesamtzeit
+
+    # Über alle Segmente iterieren
+    for L, theta, start, ziel in zip(laengen, winkel_rad,
+                                     wegpunkte[:-1], wegpunkte[1:]):
+        # Richtungsvektor des Segments (Länge 1)
+        richtung = (ziel - start) / L
+
+        # Kräfte im aktuellen Segment
+        F_N       = m * G * math.cos(theta)
+        F_H       = m * G * math.sin(theta)   # kann negativ sein (Gefälle)
+        F_H_along = -F_H                      # bergab (≥ 0 bei durchgehend Gefälle)
+        F_haft    = MU_H * F_N
+        F_gleit   = MU_G * F_N
+
+        # Kugel rollt in diesem Segment nicht mehr los
+        if F_H_along <= F_haft and v <= 1e-6:
+            break
+
+        s_seg = 0.0
+
+        # Innere Schleife: Euler-Cromer-Schritte im Segment
+        while s_seg < L:
+            # Wenn die Kugel (fast) steht und Haftung ausreicht, endet die Bewegung
+            if v <= 1e-6 and F_H_along <= F_haft:
+                v = 0.0
+                return trajektorie
+
+            # Gleitbewegung entlang der Bahn
+            a = (F_H_along - F_gleit) / m
+
+            # Euler-Cromer: erst Geschwindigkeit, dann Weg und Zeit
+            v += a * dt
+            if v < 0:
+                v = 0.0
+                return trajektorie
+
+            s_step = v * dt
+            s_seg += s_step
+            t     += dt
+
+            # Position im 3D-Raum (am Segmentende auf L klemmen)
+            pos_3d = start + richtung * min(s_seg, L)
+            trajektorie.append((t, pos_3d.copy()))
+
+    return trajektorie
+
+
+# Simulation aufrufen
+trajektorie = simuliere_trajektorie(wegpunkte, m=m, G=G, MU_H=MU_H, MU_G=MU_G, dt=dt)
+
+print(f"Trajektorie berechnet: {len(trajektorie)} Punkte")
+print(f"Bewegungszeit:         {trajektorie[-1][0]:.4f} s")
+print(f"Startposition:         {trajektorie[0][1]}")
+print(f"Endposition:           {trajektorie[-1][1]}")
+```
+
+## Schritt 2: Trajektorie für die Wiedergabe aufbereiten
+
+Für eine schnelle Positionssuche nach Zeit wandeln wir die Liste in
+NumPy-Arrays um:
+
+```{code-cell} python
+# Zeitstempel und Positionen als NumPy-Arrays
+traj_t   = np.array([p[0] for p in trajektorie])
+traj_pos = np.array([p[1] for p in trajektorie])
+
+# Geschwindigkeit aus Differenzquotient vorberechnen
+traj_v = np.zeros(len(traj_t))
+for i in range(1, len(traj_t)):
+    dp        = np.linalg.norm(traj_pos[i] - traj_pos[i-1])
+    dt_i      = traj_t[i] - traj_t[i-1]
+    traj_v[i] = dp / dt_i if dt_i > 0 else 0.0
+
+print(f"Maximale Geschwindigkeit: {traj_v.max():.3f} m/s")
+print(f"Zeitauflösung:            {np.mean(np.diff(traj_t)):.5f} s")
+```

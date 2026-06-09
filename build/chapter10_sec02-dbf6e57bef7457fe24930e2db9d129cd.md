@@ -1,0 +1,369 @@
+---
+kernelspec:
+  name: python3
+  display_name: 'Python 3'
+---
+
+# 10.2 Wie validiere ich eine Simulation?
+
+Unsere Simulation liefert eine Bewegungszeit von 1.43 Sekunden. Die Stoppuhr
+liefert 1.51 Sekunden. Was sagt uns diese Abweichung von 5 %? Ist das Modell
+schlecht, oder ist die Messung unzuverlässig? Haben wir den falschen
+Reibungskoeffizienten gewählt, oder ist das Physikmodell grundsätzlich
+unvollständig? Diese Fragen sind keine Zeichen des Scheiterns, sie sind der
+eigentliche wissenschaftliche Gehalt des Projekts.
+
+## Lernziele
+
+```{admonition} Lernziele
+:class: attention
+* [ ] Sie können erklären, was Validierung bedeutet, und den Unterschied
+  zwischen Verifikation und Validierung beschreiben.
+* [ ] Sie können eine Bewegungszeit mit Stoppuhr und mehreren Wiederholungen
+  messen, Mittelwert und Standardabweichung berechnen und interpretieren.
+* [ ] Sie können Beschleunigungsdaten aus der Phyphox-App einlesen,
+  bereinigen und eine Bewegungszeit daraus extrahieren.
+* [ ] Sie können MAE, RMSE und relative Abweichung berechnen und erklären,
+  wann welches Maß aussagekräftiger ist.
+* [ ] Sie können Fehlerquellen einer Simulation systematisch in drei
+  Kategorien einteilen: Modellfehler, Parameterfehler und Numerikfehler.
+```
+
+## Was bedeutet Validierung überhaupt?
+
+Stellen wir uns zwei verschiedene Situationen vor. In der ersten haben wir eine
+Euler-Cromer-Schleife geschrieben, sie mehrfach getestet und sind sicher, dass
+sie die Gleichungen korrekt löst. In der zweiten fragen wir uns, ob die
+Gleichungen, die wir lösen, die Wirklichkeit überhaupt korrekt beschreiben.
+
+Das sind zwei grundlegend verschiedene Fragen. Die erste heißt **Verifikation**:
+Löst das Programm die Gleichungen richtig? Das haben wir in Kapitel 9 durch den
+Vergleich von Simulation und analytischer Lösung bereits geprüft. Die zweite
+heißt **Validierung**: Beschreiben die Gleichungen die Wirklichkeit korrekt?
+
+*Warum ist dieser Unterschied so wichtig?*
+
+Ein Programm kann die Gleichungen fehlerfrei lösen und trotzdem falsche
+Ergebnisse liefern, nämlich dann, wenn das Modell die Physik unzureichend
+beschreibt. Wir könnten zum Beispiel die Luftreibung vernachlässigt haben, oder
+der Reibungskoeffizient aus der Literatur passt nicht zum tatsächlichen Material.
+Validierung erfordert immer einen Vergleich mit der Realität.
+
+In den Kapiteln 4 bis 6 haben wir dasselbe Prinzip bereits angewendet: Wir
+haben ein digitales Mesh mit einem Referenzmesh verglichen und die Abweichungen
+quantifiziert. Jetzt wenden wir dieselbe Denkweise auf die Simulation an: Das
+Modell ist unser Soll, die Messung ist unser Ist.
+
+## Wie messen wir mit Stoppuhr und Maßband?
+
+Die einfachste Messmethode liefert eine einzige Zahl: die Bewegungszeit. Wir
+messen, wie lange das Objekt von der Startposition bis zum Ende der Bahn
+braucht.
+
+### Was messen wir zusätzlich?
+
+Neben der Bewegungszeit erfassen wir mit dem Maßband die Länge der Bahn entlang
+der Führungsrille sowie den Höhenunterschied zwischen Start und Ende. Diese
+Werte dienen als Plausibilitätsprüfung der Wegpunkte aus Abschnitt 10.1.
+
+### Warum brauchen wir mehrere Wiederholungen?
+
+Eine einzelne Stoppuhrmessung ist wenig aussagekräftig. Die Reaktionszeit beim
+Starten und Stoppen beträgt typischerweise 0.2 bis 0.3 s. Bei einer
+Gesamtbewegungszeit von 1.5 s ist das ein Fehler von über 10 %. Mit mehreren
+Wiederholungen reduzieren wir den zufälligen Fehler durch Mittelwertbildung und
+können einschätzen, wie stark die Messungen streuen.
+
+```{code-cell} python
+import numpy as np
+
+# Beispielhafte Stoppuhrmessungen (8 Wiederholungen), in Sekunden
+messungen = np.array([1.51, 1.48, 1.53, 1.50, 1.55, 1.49, 1.52, 1.47])
+
+mittelwert   = np.mean(messungen)
+std          = np.std(messungen, ddof=1)   # ddof=1: Stichproben-Standardabweichung
+rel_streuung = std / mittelwert * 100
+
+print(f"Mittelwert:        {mittelwert:.4f} s")
+print(f"Standardabweichung: {std:.4f} s")
+print(f"Relative Streuung:  {rel_streuung:.2f} %")
+print(f"Messbereich:        [{messungen.min():.2f}, {messungen.max():.2f}] s")
+```
+
+Eine relative Streuung unter 3 % ist für Stoppuhrmessungen akzeptabel. Bei
+größerer Streuung sollten mehr Wiederholungen durchgeführt oder die Messmethode
+verbessert werden.
+
+```{admonition} Tipp: Videoanalyse statt Stoppuhr
+:class: note
+Wer mit dem Smartphone ein Zeitlupenvideo (240 fps) der rollenden Kugel
+aufnimmt, kann die Bewegungszeit durch Zählen der Einzelbilder bestimmen. Bei
+240 fps beträgt die Zeitauflösung 1/240 ≈ 0.004 s, was deutlich besser ist als
+die menschliche Reaktionszeit. Viele Smartphones bieten diese Funktion in der
+nativen Kamera-App.
+```
+
+## Wie messen wir mit Phyphox?
+
+**Phyphox** ist eine kostenlose Smartphone-App der RWTH Aachen, die direkten
+Zugriff auf alle Sensoren des Telefons ermöglicht: Beschleunigungsmesser,
+Gyroskop, Barometer, Mikrofon und mehr. Für unsere Kugelbahn nutzen wir den
+dreiachsigen Beschleunigungsmesser.
+
+### Wie setzen wir Phyphox für die Kugelbahn ein?
+
+Da das Smartphone nicht auf der rollenden Kugel befestigt werden kann,
+befestigen wir es am Ende der Bahn. Wenn die Kugel aufprallt, erzeugt sie einen
+kurzen, starken Ausschlag im Beschleunigungssignal. Den Startpunkt markieren wir
+manuell per Knopfdruck in der App oder durch einen leichten Stoß am Anfang der
+Bahn, der einen kleineren Ausschlag erzeugt.
+
+### Wie lesen wir die Phyphox-Daten ein?
+
+Phyphox exportiert Messdaten als CSV-Datei mit Zeitstempel und
+Beschleunigungswerten:
+
+```{code-cell} python
+import numpy as np
+import pandas as pd
+import plotly.express as px
+
+# Phyphox-CSV einlesen (Beispieldaten, bitte in der Praxis durch eigene Messung ersetzen)
+np.random.seed(42)
+t_arr   = np.linspace(0, 3.0, 1500)
+az      = np.random.normal(0, 0.05, len(t_arr))
+az     += np.where((t_arr > 0.5) & (t_arr < 2.0),
+                   np.sin((t_arr - 0.5) * 2) * 0.3, 0)   # Rollphase
+az     += np.where(np.abs(t_arr - 2.0) < 0.05, 4.0, 0)   # Aufprall-Spike
+
+df_phyphox = pd.DataFrame({"Zeit (s)": t_arr, "az (m/s²)": az})
+
+fig = px.line(df_phyphox, x="Zeit (s)", y="az (m/s²)",
+              title="Phyphox-Rohdaten: Beschleunigung az")
+fig.show()
+```
+
+### Wie extrahieren wir die Bewegungszeit?
+
+Aus dem Signal extrahieren wir die Bewegungszeit durch Schwellenwertdetektion:
+
+```{code-cell} python
+import numpy as np
+
+SCHWELLE_START    = 0.3    # m/s²: Kugel löst sich
+SCHWELLE_AUFPRALL = 2.0    # m/s²: Aufprall-Spike
+
+az_arr = df_phyphox["az (m/s²)"].to_numpy()
+t_arr  = df_phyphox["Zeit (s)"].to_numpy()
+
+maske_start = np.abs(az_arr) > SCHWELLE_START
+if not np.any(maske_start):
+    print("Kein Start-Ereignis gefunden, bitte SCHWELLE_START anpassen.")
+else:
+    idx_start = np.argmax(maske_start)
+idx_aufprall = np.where(np.abs(az_arr) > SCHWELLE_AUFPRALL)[0]
+
+if len(idx_aufprall) > 0:
+    t_start    = t_arr[idx_start]
+    t_aufprall = t_arr[idx_aufprall[-1]]
+    bewegungszeit = t_aufprall - t_start
+    print(f"Startzeitpunkt:    {t_start:.3f} s")
+    print(f"Aufprallzeitpunkt: {t_aufprall:.3f} s")
+    print(f"Bewegungszeit:     {bewegungszeit:.3f} s")
+else:
+    print("Kein Aufprall-Spike gefunden, bitte Schwellenwert anpassen.")
+```
+
+```{admonition} Mini-Übung
+:class: tip
+Variieren Sie `SCHWELLE_AUFPRALL` zwischen 1.0 und 5.0 m/s² in Schritten
+von 0.5. Wie stabil ist die extrahierte Bewegungszeit gegenüber der
+Schwellenwahl? Ab welchem Wert wird das Ergebnis unzuverlässig?
+```
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+```python
+import numpy as np
+
+for schwelle in np.arange(1.0, 5.5, 0.5):
+    idx = np.where(np.abs(az_arr) > schwelle)[0]
+    if len(idx) > 0:
+        t_bew = t_arr[idx[-1]] - t_arr[idx_start]
+        print(f"Schwelle {schwelle:.1f} m/s²: Bewegungszeit = {t_bew:.3f} s")
+    else:
+        print(f"Schwelle {schwelle:.1f} m/s²: kein Treffer")
+```
+
+Bei hohen Schwellen (über 3.5 m/s²) wird der Aufprall-Spike nicht mehr erkannt.
+Bei sehr niedrigen Schwellen (unter 1.5 m/s²) kann ein früherer Ausreißer
+fälschlicherweise als Aufprall erkannt werden. Ein robuster Bereich liegt für
+dieses Beispiel zwischen 1.5 und 3.0 m/s².
+````
+
+## Wie quantifizieren wir die Abweichung?
+
+### Was sagt die relative Abweichung?
+
+Die einfachste Kennzahl: Wie viel Prozent weicht die Simulation vom Messwert ab?
+
+```code
+Δ_rel = (Simulation − Messung) / Messung · 100 %
+```
+
+```{code-cell} python
+t_simulation = 1.43   # s (aus unserem Modell)
+t_messung    = 1.51   # s (Stoppuhr-Mittelwert)
+
+delta_rel = (t_simulation - t_messung) / t_messung * 100
+print(f"Relative Abweichung: {delta_rel:+.2f} %")
+```
+
+Ein negatives Vorzeichen zeigt, dass die Simulation eine kürzere Bewegungszeit
+vorhersagt als gemessen, d.h. die Kugel ist im Modell also zu schnell.
+
+### Wann verwenden wir MAE und RMSE?
+
+Wenn wir nicht nur die Bewegungszeit, sondern eine ganze Zeitreihe vergleichen
+(zum Beispiel Phyphox-Beschleunigung gegen simulierte Beschleunigung), brauchen
+wir Maße, die alle Zeitpunkte berücksichtigen.
+
+Der **MAE** (Mean Absolute Error, mittlerer absoluter Fehler) berechnet den
+durchschnittlichen absoluten Unterschied:
+
+```code
+MAE = (1/N) · Σ |sim_i − meas_i|
+```
+
+Der **RMSE** (Root Mean Square Error, mittlerer quadratischer Fehler) gewichtet
+große Abweichungen stärker:
+
+```code
+RMSE = sqrt((1/N) · Σ (sim_i − meas_i)²)
+```
+
+```{code-cell} python
+import numpy as np
+
+a_simulation = np.array([0.0, 0.8, 1.5, 2.1, 2.5, 2.8, 3.0, 3.1, 3.2, 3.2])
+a_messung    = np.array([0.1, 0.9, 1.4, 2.0, 2.6, 2.7, 3.1, 3.0, 3.3, 3.1])
+
+MAE  = np.mean(np.abs(a_simulation - a_messung))
+RMSE = np.sqrt(np.mean((a_simulation - a_messung)**2))
+
+print(f"MAE:  {MAE:.4f} m/s²")
+print(f"RMSE: {RMSE:.4f} m/s²")
+print(f"RMSE >= MAE: {RMSE >= MAE} "
+      f"(immer wahr; Gleichheit nur, wenn alle Fehler gleich groß sind)")
+```
+
+````{admonition} Mini-Übung
+:class: tip
+Berechnen Sie MAE und RMSE für die folgenden drei Szenarien:
+
+```python
+sim   = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+# A: gleichmäßige kleine Abweichung
+mess_A = np.array([1.1, 2.1, 3.1, 4.1, 5.1])
+# B: ein einzelner großer Ausreißer
+mess_B = np.array([1.0, 2.0, 3.0, 4.0, 9.0])
+# C: zufällige Streuung
+mess_C = np.array([0.8, 2.3, 2.9, 4.2, 4.9])
+```
+
+Welches Szenario beeinflusst den RMSE stärker als den MAE?
+````
+
+````{admonition} Lösung
+:class: tip
+:class: dropdown
+```python
+import numpy as np
+
+sim    = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+mess_A = np.array([1.1, 2.1, 3.1, 4.1, 5.1])
+mess_B = np.array([1.0, 2.0, 3.0, 4.0, 9.0])
+mess_C = np.array([0.8, 2.3, 2.9, 4.2, 4.9])
+
+for name, mess in [("A", mess_A), ("B", mess_B), ("C", mess_C)]:
+    mae  = np.mean(np.abs(sim - mess))
+    rmse = np.sqrt(np.mean((sim - mess)**2))
+    print(f"Szenario {name}: MAE = {mae:.3f}, RMSE = {rmse:.3f}")
+```
+
+Ausgabe:
+```
+Szenario A: MAE = 0.100, RMSE = 0.100
+Szenario B: MAE = 0.800, RMSE = 1.789
+Szenario C: MAE = 0.180, RMSE = 0.194
+```
+
+Szenario B zeigt den entscheidenden Unterschied: Der RMSE ist mehr als
+doppelt so groß wie der MAE, weil der eine große Ausreißer quadratisch
+eingeht. Bei gleichmäßigen Abweichungen (A) sind beide Maße identisch.
+````
+
+## Woher kommt die Abweichung?
+
+Eine Abweichung zwischen Simulation und Messung hat mehrere Ursachen. Wir
+ordnen sie in drei Kategorien ein:
+
+**Modellfehler** entstehen durch Vereinfachungen, die wir bewusst getroffen
+haben. Wir haben die Kugel als Punktmasse behandelt und vernachlässigen damit
+die Rotationsenergie. Für eine Vollkugel beträgt dieser Anteil 2/7 der
+kinetischen Gesamtenergie, was einen systematischen Korrekturfaktor von
+√(7/5) ≈ 1.18 ergibt. Außerdem haben wir Luftreibung ignoriert und den
+Reibungskoeffizienten entlang der gesamten Bahn als konstant angenommen.
+
+**Parameterfehler** entstehen, weil wir die Modellparameter nicht exakt kennen.
+Der Reibungskoeffizient für Stahl auf PLA variiert je nach Oberflächenrauheit,
+Temperatur und Verschleiß. Ein Literaturwert ist pragmatisch, trifft das reale
+Material aber möglicherweise nicht genau. In Kapitel 10.5 (Übungen) werden wir
+sehen, wie wir μ_G durch Rückrechnung aus einer Messung bestimmen können.
+
+**Numerikfehler** entstehen durch die variable Schrittweite `time.dt` in der
+Ursina-Schleife. Diese Fehler sind bei typischen Bahnlängen und Framerates
+jedoch vernachlässigbar gegenüber Modell- und Parameterfehlern.
+
+```{code-cell} python
+import pandas as pd
+
+daten = {
+    "Kategorie": [
+        "Modellfehler", "Modellfehler",
+        "Parameterfehler", "Parameterfehler",
+        "Numerikfehler"
+    ],
+    "Beispiel": [
+        "Rotation der Kugel vernachlässigt",
+        "Luftreibung vernachlässigt",
+        "Reibungskoeffizient aus Tabelle, nicht gemessen",
+        "Neigungswinkel aus Wegpunkten, nicht exakt",
+        "Variable Schrittweite time.dt in Ursina"
+    ],
+    "Typische Auswirkung": [
+        "Simulation zu schnell (ca. 18 %)",
+        "Simulation zu schnell (< 1 % bei kleinen Geschwindigkeiten)",
+        "Simulation zu schnell oder zu langsam (2-10 %)",
+        "Lokale Fehler in der Segmentbeschleunigung",
+        "Sehr gering (< 1 %)"
+    ]
+}
+
+df = pd.DataFrame(daten)
+print(df.to_string(index=False))
+```
+
+## Zusammenfassung und Ausblick
+
+In diesem Abschnitt haben wir zwei Messmethoden kennengelernt: die einfache
+Stoppuhrmessung mit Mittelwertbildung und die präzisere Phyphox-Messung mit
+automatischer Zeitextraktion aus dem Beschleunigungssignal. Als Gütemaße
+verwenden wir die relative Abweichung für einzelne Werte sowie MAE und RMSE
+für Zeitreihenvergleiche. Fehlerquellen teilen wir in Modellfehler,
+Parameterfehler und Numerikfehler ein.
+
+In Abschnitt 10.3 bringen wir Geometrie und Physik zusammen: Wir implementieren
+die vollständige segmentweise Simulation mit den Wegpunkten aus 10.1 als reines
+Python-Skript und vergleichen das Ergebnis direkt mit unseren Messwerten.

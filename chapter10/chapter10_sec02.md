@@ -21,8 +21,6 @@ eigentliche wissenschaftliche Gehalt des Projekts.
   zwischen Verifikation und Validierung beschreiben.
 * [ ] Sie können eine Bewegungszeit mit Stoppuhr und mehreren Wiederholungen
   messen, Mittelwert und Standardabweichung berechnen und interpretieren.
-* [ ] Sie können Beschleunigungsdaten aus der Phyphox-App einlesen,
-  bereinigen und eine Bewegungszeit daraus extrahieren.
 * [ ] Sie können MAE, RMSE und relative Abweichung berechnen und erklären,
   wann welches Maß aussagekräftiger ist.
 * [ ] Sie können Fehlerquellen einer Simulation systematisch in drei
@@ -94,113 +92,20 @@ Eine relative Streuung unter 3 % ist für Stoppuhrmessungen akzeptabel. Bei
 größerer Streuung sollten mehr Wiederholungen durchgeführt oder die Messmethode
 verbessert werden.
 
-```{admonition} Tipp: Videoanalyse statt Stoppuhr
-:class: note
-Wer mit dem Smartphone ein Zeitlupenvideo (240 fps) der rollenden Kugel
-aufnimmt, kann die Bewegungszeit durch Zählen der Einzelbilder bestimmen. Bei
-240 fps beträgt die Zeitauflösung 1/240 ≈ 0.004 s, was deutlich besser ist als
-die menschliche Reaktionszeit. Viele Smartphones bieten diese Funktion in der
-nativen Kamera-App.
-```
+### Wie messen wir mit dem Smartphone?
 
-## Wie messen wir mit Phyphox?
+Auch das Smartphone kann die Messungen unterstützen. Wer mit dem Smartphone ein
+Video der rollenden Kugel aufnimmt, kann die Bewegungszeit durch Zählen der
+Einzelbilder bestimmen. Bei 120 fps beträgt die Zeitauflösung 1/120 ≈ 0.008 s,
+was deutlich besser ist als die menschliche Reaktionszeit. Viele Smartphones
+bieten diese Funktion in der nativen Kamera-App.
 
 **Phyphox** ist eine kostenlose Smartphone-App der RWTH Aachen, die direkten
 Zugriff auf alle Sensoren des Telefons ermöglicht: Beschleunigungsmesser,
-Gyroskop, Barometer, Mikrofon und mehr. Für unsere Kugelbahn nutzen wir den
-dreiachsigen Beschleunigungsmesser.
-
-### Wie setzen wir Phyphox für die Kugelbahn ein?
-
-Da das Smartphone nicht auf der rollenden Kugel befestigt werden kann,
-befestigen wir es am Ende der Bahn. Wenn die Kugel aufprallt, erzeugt sie einen
-kurzen, starken Ausschlag im Beschleunigungssignal. In unserem vereinfachten
-Beispiel erkennen wir den Start nicht an einem separaten Marker, sondern an der
-ersten Überschreitung einer Beschleunigungsschwelle während der Rollphase.
-
-### Wie lesen wir die Phyphox-Daten ein?
-
-Phyphox exportiert Messdaten als CSV-Datei mit Zeitstempel und
-Beschleunigungswerten:
-
-```{code-cell} python
-import numpy as np
-import pandas as pd
-import plotly.express as px
-
-# Phyphox-CSV einlesen (Beispieldaten, bitte in der Praxis durch eigene Messung ersetzen)
-np.random.seed(42)
-t_arr   = np.linspace(0, 3.0, 1500)
-az      = np.random.normal(0, 0.05, len(t_arr))
-az     += np.where((t_arr > 0.5) & (t_arr < 2.0),
-                   np.sin((t_arr - 0.5) * 2) * 0.3, 0)   # Rollphase
-az     += np.where(np.abs(t_arr - 2.0) < 0.05, 4.0, 0)   # Aufprall-Spike
-
-df_phyphox = pd.DataFrame({"Zeit (s)": t_arr, "az (m/s²)": az})
-
-fig = px.line(df_phyphox, x="Zeit (s)", y="az (m/s²)",
-              title="Phyphox-Rohdaten: Beschleunigung az")
-fig.show()
-```
-
-### Wie extrahieren wir die Bewegungszeit?
-
-Aus dem Signal extrahieren wir die Bewegungszeit durch Schwellenwertdetektion:
-
-```{code-cell} python
-import numpy as np
-
-SCHWELLE_START    = 0.3    # m/s²: Kugel löst sich
-SCHWELLE_AUFPRALL = 2.0    # m/s²: Aufprall-Spike
-
-az_arr = df_phyphox["az (m/s²)"].to_numpy()
-t_arr  = df_phyphox["Zeit (s)"].to_numpy()
-
-maske_start = np.abs(az_arr) > SCHWELLE_START
-if not np.any(maske_start):
-    print("Kein Start-Ereignis gefunden, bitte SCHWELLE_START anpassen.")
-else:
-    idx_start    = np.argmax(maske_start)
-    idx_aufprall = np.where(np.abs(az_arr) > SCHWELLE_AUFPRALL)[0]
-
-    if len(idx_aufprall) > 0:
-        t_start       = t_arr[idx_start]
-        t_aufprall    = t_arr[idx_aufprall[-1]]
-        bewegungszeit = t_aufprall - t_start
-        print(f"Startzeitpunkt:    {t_start:.3f} s")
-        print(f"Aufprallzeitpunkt: {t_aufprall:.3f} s")
-        print(f"Bewegungszeit:     {bewegungszeit:.3f} s")
-    else:
-        print("Kein Aufprall-Spike gefunden, bitte SCHWELLE_AUFPRALL anpassen.")
-```
-
-```{admonition} Mini-Übung
-:class: tip
-Variieren Sie `SCHWELLE_AUFPRALL` zwischen 1.0 und 5.0 m/s² in Schritten
-von 0.5. Wie stabil ist die extrahierte Bewegungszeit gegenüber der
-Schwellenwahl? Ab welchem Wert wird das Ergebnis unzuverlässig?
-```
-
-````{admonition} Lösung
-:class: tip
-:class: dropdown
-```python
-import numpy as np
-
-for schwelle in np.arange(1.0, 5.5, 0.5):
-    idx = np.where(np.abs(az_arr) > schwelle)[0]
-    if len(idx) > 0:
-        t_bew = t_arr[idx[-1]] - t_arr[idx_start]
-        print(f"Schwelle {schwelle:.1f} m/s²: Bewegungszeit = {t_bew:.3f} s")
-    else:
-        print(f"Schwelle {schwelle:.1f} m/s²: kein Treffer")
-```
-
-Bei zu hohen Schwellen kann der Aufprall-Spike nicht mehr zuverlässig erkannt werden.
-Bei sehr niedrigen Schwellen (unter 1.5 m/s²) können zusätzliche Ausreißer oder
-Nachschwinger nach dem eigentlichen Aufprall dazu führen, dass ein späterer
-Zeitpunkt fälschlicherweise als Aufprallzeitpunkt gewertet wird.
-````
+Gyroskop, Barometer, Mikrofon und mehr. Leider können wir das Smartphone nicht
+auf der rollenden Kugel befestigen, möglicherweise aber auf einer Holzeisenbahn.
+Dann können die Beschleunigungswerte ausgelesen werden. Alternativ bietet die
+Phyphox-App eine akustische Stoppuhr.
 
 ## Wie quantifizieren wir die Abweichung?
 
@@ -357,9 +262,7 @@ print(df.to_string(index=False))
 
 ## Zusammenfassung und Ausblick
 
-In diesem Abschnitt haben wir zwei Messmethoden kennengelernt: die einfache
-Stoppuhrmessung mit Mittelwertbildung und die präzisere Phyphox-Messung mit
-automatischer Zeitextraktion aus dem Beschleunigungssignal. Als Gütemaße
+In diesem Abschnitt haben wir uns mit Messmethoden beschäftigt. Als Gütemaße
 verwenden wir die relative Abweichung für einzelne Werte sowie MAE und RMSE
 für Zeitreihenvergleiche. Fehlerquellen teilen wir in Modellfehler,
 Parameterfehler und Numerikfehler ein.

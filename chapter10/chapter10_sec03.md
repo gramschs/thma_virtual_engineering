@@ -39,24 +39,34 @@ import numpy as np
 import math
 
 def bahn_aus_wegpunkten(wegpunkte):
-    """Berechnet Segmentlängen und lokale Neigungswinkel."""
+    """Berechnet Segmentlängen und lokale Neigungswinkel.
+
+    Annahme: Wegpunkte als (x, y, z) in m, z ist die Höhenkoordinate.
+    """
     laengen, winkel_rad = [], []
     for i in range(len(wegpunkte) - 1):
-        delta       = wegpunkte[i+1] - wegpunkte[i]
-        laenge      = np.linalg.norm(delta)
-        delta_horiz = np.sqrt(delta[0]**2 + delta[2]**2)
-        theta       = np.arctan2(delta[1], delta_horiz)
+        delta  = wegpunkte[i+1] - wegpunkte[i]
+        laenge = np.linalg.norm(delta)
+        # horizontale Distanz in der x-y-Ebene
+        delta_horiz = np.sqrt(delta[0]**2 + delta[1]**2)
+        # Neigung: z als Höhe
+        theta = np.arctan2(delta[2], delta_horiz)
         laengen.append(laenge)
         winkel_rad.append(theta)
     return np.array(laengen), np.array(winkel_rad)
 
 # Wegpunkte (aus CloudCompare exportiert oder manuell definiert)
+# x: Bahnlänge, y: seitliche Lage, z: Höhe (negativ bergab)
 wegpunkte = np.array([
-    [0.00, 0.000, 0.00], [0.12, -0.020, 0.01],
-    [0.25, -0.040, 0.02], [0.38, -0.055, 0.025],
-    [0.51, -0.065, 0.030], [0.63, -0.080, 0.025],
-    [0.76, -0.095, 0.015], [0.88, -0.110, 0.005],
-    [1.00, -0.120, 0.000],
+    [0.00, 0.000,  0.000],
+    [0.12, 0.010, -0.030],  # steil
+    [0.25, 0.020, -0.050],  # flacher
+    [0.38, 0.025, -0.065],
+    [0.51, 0.030, -0.075],
+    [0.63, 0.025, -0.090],
+    [0.76, 0.015, -0.105],
+    [0.88, 0.005, -0.115],
+    [1.00, 0.000, -0.120],
 ])
 
 laengen, winkel_rad = bahn_aus_wegpunkten(wegpunkte)
@@ -64,8 +74,9 @@ laengen, winkel_rad = bahn_aus_wegpunkten(wegpunkte)
 # Physikparameter
 m    = 0.1      # Masse in kg
 G    = 9.81     # Erdbeschleunigung in m/s²
-MU_H = 0.30     # Haftreibungskoeffizient
-MU_G = 0.20     # Gleitreibungskoeffizient
+MU_H = 0.20     # Haftreibungskoeffizient
+MU_G = 0.15     # Gleitreibungskoeffizient
+dt = 0.005 # Zeitschritt in s
 
 print(f"Segmente:      {len(laengen)}")
 print(f"Gesamtlänge:   {np.sum(laengen):.4f} m")
@@ -80,11 +91,6 @@ Gleitreibung einmalig. Diese Werte sind innerhalb eines Segments konstant
 und hängen nur vom lokalen Neigungswinkel ab:
 
 ```{code-cell} python
-import numpy as np
-import math
-
-# (Wegpunkte und laengen/winkel_rad wie oben definiert)
-
 F_N_seg        = m * G * np.cos(winkel_rad)
 F_H_seg        = m * G * np.sin(winkel_rad)
 F_HAFT_MAX_seg = MU_H * F_N_seg
@@ -103,7 +109,7 @@ for i in range(len(laengen)):
 gleitet?*
 
 Wenn `|F_H| ≤ F_Haft,max`, bremst die Haftreibung die Kugel bis zum
-Stillstand – aber nur, wenn sie auch langsam genug ist. Eine Kugel, die
+Stillstand, aber nur, wenn sie auch langsam genug ist. Eine Kugel, die
 bereits mit hoher Geschwindigkeit in ein flaches Segment eintritt, wird durch
 die Gleitreibung abgebremst, kommt aber möglicherweise erst im nächsten
 Segment zum Stillstand. Die segmentweise Schleife behandelt diesen Fall durch
@@ -117,92 +123,75 @@ innerhalb eines Segments durch. Die Geschwindigkeit wird nahtlos von einem
 Segment zum nächsten weitergegeben:
 
 ```{code-cell} python
-import numpy as np
-import math
-
-def bahn_aus_wegpunkten(wegpunkte):
-    laengen, winkel_rad = [], []
-    for i in range(len(wegpunkte) - 1):
-        delta       = wegpunkte[i+1] - wegpunkte[i]
-        laenge      = np.linalg.norm(delta)
-        delta_horiz = np.sqrt(delta[0]**2 + delta[2]**2)
-        theta       = np.arctan2(delta[1], delta_horiz)
-        laengen.append(laenge)
-        winkel_rad.append(theta)
-    return np.array(laengen), np.array(winkel_rad)
-
-wegpunkte = np.array([
-    [0.00, 0.000, 0.00], [0.12, -0.020, 0.01],
-    [0.25, -0.040, 0.02], [0.38, -0.055, 0.025],
-    [0.51, -0.065, 0.030], [0.63, -0.080, 0.025],
-    [0.76, -0.095, 0.015], [0.88, -0.110, 0.005],
-    [1.00, -0.120, 0.000],
-])
-laengen, winkel_rad = bahn_aus_wegpunkten(wegpunkte)
-
-m, G, MU_H, MU_G = 0.1, 9.81, 0.30, 0.20
-dt = 0.005
-
 # Anfangszustand
-v_aktuell = 0.0
+v_aktuell = 0.0   # m/s (optional: kleiner Startstoß, z.B. 0.05)
 t_gesamt  = 0.0
-gleitet   = False
-
-# Ergebnislisten
-t_verlauf = [0.0]
-v_verlauf = [0.0]
-s_verlauf = [0.0]
 s_gesamt  = 0.0
 
+t_verlauf = [0.0]
+v_verlauf = [v_aktuell]
+s_verlauf = [0.0]
+
+stopped = False
+
 # Äußere Schleife: über alle Segmente
-for seg_idx in range(len(laengen)):
-    theta    = winkel_rad[seg_idx]
-    L        = laengen[seg_idx]
-    F_N      = m * G * math.cos(theta)
-    F_H      = m * G * math.sin(theta)
-    F_haft   = MU_H * F_N
-    F_gleit  = MU_G  * F_N
+for seg_idx, (L, theta) in enumerate(zip(laengen, winkel_rad), start=1):
+    # Kräfte im aktuellen Segment
+    F_N       = m * G * math.cos(theta)
+    F_H       = m * G * math.sin(theta)   # kann negativ sein (Gefälle)
+    F_H_along = -F_H                      # Betrag in Richtung "bergab" (>= 0)
+    F_haft    = MU_H * F_N
+    F_gleit   = MU_G * F_N
 
-    # Zustandscheck beim Segmenteintritt
-    if v_aktuell > 1e-6 or abs(F_H) > F_haft:
-        gleitet = True
+    # Prüfen, ob die Kugel in diesem Segment überhaupt losrollen kann
+    if F_H_along <= F_haft and v_aktuell <= 1e-6:
+        print(f"Kugel bleibt in Segment {seg_idx} stehen "
+              f"(|F_H| <= F_Haft,max und v ≈ 0).")
+        stopped = True
+        break
 
-    s_seg = 0.0   # zurückgelegte Distanz im aktuellen Segment
+    s_seg = 0.0  # zurückgelegte Distanz im aktuellen Segment
 
     # Innere Schleife: Euler-Cromer-Schritte im Segment
     while s_seg < L:
-        if gleitet:
-            a = (-F_H - F_gleit) / m   # Gefälle: F_H negativ, Reibung bremst
-        else:
-            a = 0.0
+        # Wenn die Kugel (fast) steht und Haftung ausreicht, endet die Bewegung
+        if v_aktuell <= 1e-6 and F_H_along <= F_haft:
+            v_aktuell = 0.0
+            stopped = True
+            break
 
-        # Euler-Cromer-Schritt: erst Geschwindigkeit, dann Position
+        # Gleitreibung entlang der Bahn (nur Bewegung bergab betrachtet)
+        a = (F_H_along - F_gleit) / m
+
+        # Euler-Cromer: erst Geschwindigkeit, dann Weg und Zeit
         v_aktuell += a * dt
         if v_aktuell < 0:
             v_aktuell = 0.0
 
-        s_seg    += v_aktuell * dt
-        s_gesamt += v_aktuell * dt
+        s_step   = v_aktuell * dt
+        s_seg   += s_step
+        s_gesamt += s_step
         t_gesamt += dt
 
         t_verlauf.append(t_gesamt)
         v_verlauf.append(v_aktuell)
         s_verlauf.append(s_gesamt)
 
+    if stopped:
+        break
+
 print(f"Bewegungszeit:      {t_gesamt:.4f} s")
 print(f"Endgeschwindigkeit: {v_aktuell:.4f} m/s")
 print(f"Gesamtstrecke:      {s_gesamt:.4f} m")
 ```
 
-```{admonition} Warum ist die Reihenfolge in der inneren Schleife wichtig?
-:class: note
-Der Zustandscheck (`gleitet`) findet einmalig beim Segmenteintritt statt. Die
-Geschwindigkeit `v_aktuell` und die zurückgelegte Distanz `s_seg` innerhalb
-des Segments werden in jedem Zeitschritt aktualisiert. Die Geschwindigkeit am
-Ende des Segments ist gleichzeitig die Anfangsgeschwindigkeit des nächsten –
-das ist die nahtlose Weitergabe, die eine korrekte segmentübergreifende Physik
-gewährleistet.
-```
+Der Zustandscheck findet beim Eintritt in jedes Segment und innerhalb der
+inneren Schleife statt: Wenn die Hangabtriebskraft nicht ausreicht, um die
+Haftreibung zu überwinden und die Kugel (fast) steht, beenden wir die
+Simulation. Die Geschwindigkeit `v_aktuell` wird in jedem Zeitschritt
+aktualisiert und am Segmentende nahtlos an das nächste Segment weitergegeben.
+Die Euler-Cromer-Reihenfolge (zuerst Geschwindigkeit, dann Weg) stellt sicher,
+dass die Energieentwicklung physikalisch sinnvoll bleibt.
 
 ## Schritt 4: Ergebnis mit Messung vergleichen
 
@@ -212,7 +201,7 @@ markieren den Messwert aus Abschnitt 10.2 als vertikale Linie:
 ```{code-cell} python
 import plotly.graph_objects as go
 
-T_MESSUNG = 1.51   # s – aus Stoppuhr (Abschnitt 10.2)
+T_MESSUNG = 1.51   # s aus Stoppuhr (Abschnitt 10.2)
 
 fig = go.Figure()
 
@@ -250,30 +239,52 @@ durch Kalibrierung an unserem Messwert verbessern: Wir suchen das μ_G, das
 die simulierte Bewegungszeit dem Messwert am nächsten bringt.
 
 ```{code-cell} python
-import numpy as np
-import math
-
 def simuliere(wegpunkte, m, G, MU_H, MU_G, dt=0.005):
-    """Gibt die Bewegungszeit zurück."""
+    """Simuliert die Bewegungszeit entlang der Bahn.
+
+    Verwendet dasselbe Reibungsmodell wie die segmentweise Schleife:
+    - z ist die Höhenkoordinate,
+    - F_H_along ist die Hangkomponente entlang der Bahn (bergab, ≥ 0),
+    - wenn v ≈ 0 und |F_H_along| ≤ F_Haft,max, kommt die Kugel zum Stillstand.
+    """
     laengen, winkel_rad = bahn_aus_wegpunkten(wegpunkte)
-    v, t, gleitet = 0.0, 0.0, False
-    for seg_idx in range(len(laengen)):
-        theta   = winkel_rad[seg_idx]
-        L       = laengen[seg_idx]
-        F_N     = m * G * math.cos(theta)
-        F_H     = m * G * math.sin(theta)
-        F_haft  = MU_H * F_N
-        F_gleit = MU_G  * F_N
-        if v > 1e-6 or abs(F_H) > F_haft:
-            gleitet = True
-        s = 0.0
-        while s < L:
-            a  = (-F_H - F_gleit) / m if gleitet else 0.0
+
+    v = 0.0   # Anfangsgeschwindigkeit
+    t = 0.0   # Gesamtzeit
+
+    for L, theta in zip(laengen, winkel_rad):
+        # Kräfte im aktuellen Segment
+        F_N       = m * G * math.cos(theta)
+        F_H       = m * G * math.sin(theta)   # kann negativ sein (Gefälle)
+        F_H_along = -F_H                      # bergab (≥ 0 bei Gefälle)
+        F_haft    = MU_H * F_N
+        F_gleit   = MU_G * F_N
+
+        # Startbedingung in diesem Segment: Kugel rollt hier nicht mehr los
+        if F_H_along <= F_haft and v <= 1e-6:
+            break
+
+        s_seg = 0.0
+
+        while s_seg < L:
+            # Wenn die Kugel (fast) steht und Haftung ausreicht, endet die Bewegung
+            if v <= 1e-6 and F_H_along <= F_haft:
+                v = 0.0
+                return t
+
+            # Gleitreibung entlang der Bahn
+            a = (F_H_along - F_gleit) / m
+
+            # Euler-Cromer-Schritt
             v += a * dt
             if v < 0:
-                return t   # Kugel stoppt vorzeitig
-            s += v * dt
-            t += dt
+                v = 0.0
+                return t
+
+            s_step = v * dt
+            s_seg += s_step
+            t     += dt
+
     return t
 
 T_MESSUNG = 1.51
@@ -288,6 +299,7 @@ for _ in range(40):
     else:
         mu_hi = mu_mid
 
+mu_mid = (mu_lo + mu_hi) / 2
 t_kalibriert = simuliere(wegpunkte, m, G, MU_H, mu_mid)
 print(f"Kalibriertes μ_G:    {mu_mid:.4f}")
 print(f"Simulationszeit:     {t_kalibriert:.5f} s")
@@ -326,7 +338,7 @@ print(df.to_string(index=False))
 
 Der kalibrierte Wert liegt fast immer zwischen zwei Tabelleneinträgen, weil
 die Schrittweite von 0.05 zu grob ist, um den Messwert exakt zu treffen.
-Die Bisektion bestimmt μ_G auf vier Dezimalstellen – weit feiner als jede
+Die Bisektion bestimmt μ_G auf vier Dezimalstellen, weit feiner als jede
 manuelle Tabelle.
 ````
 

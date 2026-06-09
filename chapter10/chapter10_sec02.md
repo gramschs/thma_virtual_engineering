@@ -10,7 +10,7 @@ Unsere Simulation liefert eine Bewegungszeit von 1.43 Sekunden. Die Stoppuhr
 liefert 1.51 Sekunden. Was sagt uns diese Abweichung von 5 %? Ist das Modell
 schlecht, oder ist die Messung unzuverlässig? Haben wir den falschen
 Reibungskoeffizienten gewählt, oder ist das Physikmodell grundsätzlich
-unvollständig? Diese Fragen sind keine Zeichen des Scheiterns – sie sind der
+unvollständig? Diese Fragen sind keine Zeichen des Scheiterns, sie sind der
 eigentliche wissenschaftliche Gehalt des Projekts.
 
 ## Lernziele
@@ -36,11 +36,10 @@ Euler-Cromer-Schleife geschrieben, sie mehrfach getestet und sind sicher, dass
 sie die Gleichungen korrekt löst. In der zweiten fragen wir uns, ob die
 Gleichungen, die wir lösen, die Wirklichkeit überhaupt korrekt beschreiben.
 
-Das sind zwei grundlegend verschiedene Fragen. Die erste heißt **Verifikation**
-(englisch: Verification): Löst das Programm die Gleichungen richtig? Das haben
-wir in Kapitel 9 durch den Vergleich von Simulation und analytischer Lösung
-bereits geprüft. Die zweite heißt **Validierung** (englisch: Validation):
-Beschreiben die Gleichungen die Wirklichkeit korrekt?
+Das sind zwei grundlegend verschiedene Fragen. Die erste heißt **Verifikation**:
+Löst das Programm die Gleichungen richtig? Das haben wir in Kapitel 9 durch den
+Vergleich von Simulation und analytischer Lösung bereits geprüft. Die zweite
+heißt **Validierung**: Beschreiben die Gleichungen die Wirklichkeit korrekt?
 
 *Warum ist dieser Unterschied so wichtig?*
 
@@ -99,8 +98,8 @@ verbessert werden.
 :class: note
 Wer mit dem Smartphone ein Zeitlupenvideo (240 fps) der rollenden Kugel
 aufnimmt, kann die Bewegungszeit durch Zählen der Einzelbilder bestimmen. Bei
-240 fps beträgt die Zeitauflösung 1/240 ≈ 0.004 s – deutlich besser als die
-menschliche Reaktionszeit. Viele Smartphones bieten diese Funktion in der
+240 fps beträgt die Zeitauflösung 1/240 ≈ 0.004 s, was deutlich besser ist als
+die menschliche Reaktionszeit. Viele Smartphones bieten diese Funktion in der
 nativen Kamera-App.
 ```
 
@@ -111,20 +110,13 @@ Zugriff auf alle Sensoren des Telefons ermöglicht: Beschleunigungsmesser,
 Gyroskop, Barometer, Mikrofon und mehr. Für unsere Kugelbahn nutzen wir den
 dreiachsigen Beschleunigungsmesser.
 
-```{dropdown} Video "Phyphox – Einführung" von der RWTH Aachen
-<iframe width="560" height="315" src="https://www.youtube.com/embed/a3Hp2_SgZt8"
-title="YouTube video player" frameborder="0" allow="accelerometer; autoplay;
-clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-allowfullscreen></iframe>
-```
-
 ### Wie setzen wir Phyphox für die Kugelbahn ein?
 
 Da das Smartphone nicht auf der rollenden Kugel befestigt werden kann,
 befestigen wir es am Ende der Bahn. Wenn die Kugel aufprallt, erzeugt sie einen
-kurzen, starken Ausschlag im Beschleunigungssignal. Den Startpunkt markieren wir
-manuell per Knopfdruck in der App oder durch einen leichten Stoß am Anfang der
-Bahn, der einen kleineren Ausschlag erzeugt.
+kurzen, starken Ausschlag im Beschleunigungssignal. In unserem vereinfachten
+Beispiel erkennen wir den Start nicht an einem separaten Marker, sondern an der
+ersten Überschreitung einer Beschleunigungsschwelle während der Rollphase.
 
 ### Wie lesen wir die Phyphox-Daten ein?
 
@@ -136,7 +128,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-# Phyphox-CSV einlesen (Beispieldaten – in der Praxis durch eigene Messung ersetzen)
+# Phyphox-CSV einlesen (Beispieldaten, bitte in der Praxis durch eigene Messung ersetzen)
 np.random.seed(42)
 t_arr   = np.linspace(0, 3.0, 1500)
 az      = np.random.normal(0, 0.05, len(t_arr))
@@ -164,18 +156,22 @@ SCHWELLE_AUFPRALL = 2.0    # m/s²: Aufprall-Spike
 az_arr = df_phyphox["az (m/s²)"].to_numpy()
 t_arr  = df_phyphox["Zeit (s)"].to_numpy()
 
-idx_start    = np.argmax(np.abs(az_arr) > SCHWELLE_START)
-idx_aufprall = np.where(np.abs(az_arr) > SCHWELLE_AUFPRALL)[0]
-
-if len(idx_aufprall) > 0:
-    t_start    = t_arr[idx_start]
-    t_aufprall = t_arr[idx_aufprall[-1]]
-    bewegungszeit = t_aufprall - t_start
-    print(f"Startzeitpunkt:    {t_start:.3f} s")
-    print(f"Aufprallzeitpunkt: {t_aufprall:.3f} s")
-    print(f"Bewegungszeit:     {bewegungszeit:.3f} s")
+maske_start = np.abs(az_arr) > SCHWELLE_START
+if not np.any(maske_start):
+    print("Kein Start-Ereignis gefunden, bitte SCHWELLE_START anpassen.")
 else:
-    print("Kein Aufprall-Spike gefunden – Schwellenwert anpassen.")
+    idx_start    = np.argmax(maske_start)
+    idx_aufprall = np.where(np.abs(az_arr) > SCHWELLE_AUFPRALL)[0]
+
+    if len(idx_aufprall) > 0:
+        t_start       = t_arr[idx_start]
+        t_aufprall    = t_arr[idx_aufprall[-1]]
+        bewegungszeit = t_aufprall - t_start
+        print(f"Startzeitpunkt:    {t_start:.3f} s")
+        print(f"Aufprallzeitpunkt: {t_aufprall:.3f} s")
+        print(f"Bewegungszeit:     {bewegungszeit:.3f} s")
+    else:
+        print("Kein Aufprall-Spike gefunden, bitte SCHWELLE_AUFPRALL anpassen.")
 ```
 
 ```{admonition} Mini-Übung
@@ -200,10 +196,10 @@ for schwelle in np.arange(1.0, 5.5, 0.5):
         print(f"Schwelle {schwelle:.1f} m/s²: kein Treffer")
 ```
 
-Bei hohen Schwellen (über 3.5 m/s²) wird der Aufprall-Spike nicht mehr erkannt.
-Bei sehr niedrigen Schwellen (unter 1.5 m/s²) kann ein früherer Ausreißer
-fälschlicherweise als Aufprall erkannt werden. Ein robuster Bereich liegt für
-dieses Beispiel zwischen 1.5 und 3.0 m/s².
+Bei zu hohen Schwellen kann der Aufprall-Spike nicht mehr zuverlässig erkannt werden.
+Bei sehr niedrigen Schwellen (unter 1.5 m/s²) können zusätzliche Ausreißer oder
+Nachschwinger nach dem eigentlichen Aufprall dazu führen, dass ein späterer
+Zeitpunkt fälschlicherweise als Aufprallzeitpunkt gewertet wird.
 ````
 
 ## Wie quantifizieren wir die Abweichung?
@@ -212,7 +208,7 @@ dieses Beispiel zwischen 1.5 und 3.0 m/s².
 
 Die einfachste Kennzahl: Wie viel Prozent weicht die Simulation vom Messwert ab?
 
-```
+```code
 Δ_rel = (Simulation − Messung) / Messung · 100 %
 ```
 
@@ -225,7 +221,7 @@ print(f"Relative Abweichung: {delta_rel:+.2f} %")
 ```
 
 Ein negatives Vorzeichen zeigt, dass die Simulation eine kürzere Bewegungszeit
-vorhersagt als gemessen – die Kugel ist im Modell also zu schnell.
+vorhersagt als gemessen, d.h. die Kugel ist im Modell also zu schnell.
 
 ### Wann verwenden wir MAE und RMSE?
 
@@ -236,14 +232,14 @@ wir Maße, die alle Zeitpunkte berücksichtigen.
 Der **MAE** (Mean Absolute Error, mittlerer absoluter Fehler) berechnet den
 durchschnittlichen absoluten Unterschied:
 
-```
+```code
 MAE = (1/N) · Σ |sim_i − meas_i|
 ```
 
 Der **RMSE** (Root Mean Square Error, mittlerer quadratischer Fehler) gewichtet
 große Abweichungen stärker:
 
-```
+```code
 RMSE = sqrt((1/N) · Σ (sim_i − meas_i)²)
 ```
 
@@ -258,10 +254,11 @@ RMSE = np.sqrt(np.mean((a_simulation - a_messung)**2))
 
 print(f"MAE:  {MAE:.4f} m/s²")
 print(f"RMSE: {RMSE:.4f} m/s²")
-print(f"RMSE > MAE: {RMSE > MAE} (immer wahr, da RMSE Ausreißer stärker gewichtet)")
+print(f"RMSE >= MAE: {RMSE >= MAE} "
+      f"(immer wahr; Gleichheit nur, wenn alle Fehler gleich groß sind)")
 ```
 
-```{admonition} Mini-Übung
+````{admonition} Mini-Übung
 :class: tip
 Berechnen Sie MAE und RMSE für die folgenden drei Szenarien:
 
@@ -276,7 +273,7 @@ mess_C = np.array([0.8, 2.3, 2.9, 4.2, 4.9])
 ```
 
 Welches Szenario beeinflusst den RMSE stärker als den MAE?
-```
+````
 
 ````{admonition} Lösung
 :class: tip
@@ -348,7 +345,7 @@ daten = {
     "Typische Auswirkung": [
         "Simulation zu schnell (ca. 18 %)",
         "Simulation zu schnell (< 1 % bei kleinen Geschwindigkeiten)",
-        "Simulation zu schnell oder zu langsam (2–10 %)",
+        "Simulation zu schnell oder zu langsam (2-10 %)",
         "Lokale Fehler in der Segmentbeschleunigung",
         "Sehr gering (< 1 %)"
     ]

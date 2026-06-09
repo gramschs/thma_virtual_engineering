@@ -18,8 +18,8 @@ reicht nicht aus, um diese Geometrie zu beschreiben.
 ```{admonition} Lernziele
 :class: attention
 * [ ] Sie können eine komplexe Bahn als geordnete Liste von Wegpunkten
-  (englisch: Waypoints) beschreiben und die Begriffe Segment, Segmentlänge
-  und lokaler Neigungswinkel erklären.
+  beschreiben und die Begriffe Segment, Segmentlänge und lokaler Neigungswinkel
+  erklären.
 * [ ] Sie können Segmentlängen und lokale Neigungswinkel aus Wegpunktlisten
   in Python berechnen.
 * [ ] Sie können eine Bahn aus Wegpunkten mit Plotly dreidimensional
@@ -46,16 +46,17 @@ Ein mittlerer Winkel würde die Gesamtbewegungszeit vielleicht annähernd richti
 vorhersagen. Aber er würde nicht erklären, wo die Kugel besonders schnell wird,
 wo sie abbremst und ob sie an einer flachen Stelle kurz zum Stillstand kommen
 könnte. Für einen Vergleich mit Phyphox-Messdaten in Abschnitt 10.2 brauchen
-wir die zeitaufgelöste Geschwindigkeit – und dafür müssen wir die Geometrie
+wir die zeitaufgelöste Geschwindigkeit und dafür müssen wir die Geometrie
 korrekt modellieren.
 
 ## Wie beschreiben wir die Bahn als Punktefolge?
 
 Die einfachste Möglichkeit, eine komplexe Bahn zu beschreiben, ist eine
-geordnete Liste von Punkten im Raum. Wir nennen sie **Wegpunkte** (englisch:
-Waypoints). Zwischen je zwei aufeinanderfolgenden Wegpunkten nehmen wir an,
-dass die Bahn geradlinig verläuft. Das Ergebnis ist eine stückweise lineare
-Approximation der echten Bahn.
+geordnete Liste von Punkten im Raum. Wir nennen sie **Wegpunkte**. Wir
+interpretieren z als Höhenkoordinate, x und y beschreiben die horizontale Lage.
+Zwischen je zwei aufeinanderfolgenden Wegpunkten nehmen wir an, dass die Bahn
+geradlinig verläuft. Das Ergebnis ist eine stückweise lineare Approximation der
+echten Bahn.
 
 Ein Wegpunkt ist ein Tripel `(x, y, z)` in Metern. Für eine ebene Bahn reicht
 `(x, y)`, für unsere räumliche Kugelbahn brauchen wir alle drei Koordinaten.
@@ -64,14 +65,14 @@ Ein Wegpunkt ist ein Tripel `(x, y, z)` in Metern. Für eine ebene Bahn reicht
 import numpy as np
 
 # Beispielhafte Wegpunkte einer vereinfachten Kugelbahn
-# Format: (x, y, z) in Metern, von Start bis Ende
+# Format: (x, y, z) in Metern, von Start bis Ende; z = Höhe
 wegpunkte = np.array([
-    [0.00,  0.000, 0.00],
-    [0.20, -0.030, 0.00],
-    [0.40, -0.050, 0.02],
-    [0.60, -0.060, 0.04],
-    [0.80, -0.090, 0.03],
-    [1.00, -0.120, 0.01],
+    [0.00,  0.00,  0.00],
+    [0.20,  0.02, -0.03],
+    [0.40,  0.05, -0.06],
+    [0.60,  0.08, -0.08],
+    [0.80,  0.10, -0.11],
+    [1.00,  0.12, -0.14],
 ])
 
 print(f"Anzahl Wegpunkte: {len(wegpunkte)}")
@@ -85,25 +86,14 @@ print(f"Anzahl Segmente:  {len(wegpunkte) - 1}")
 Die Länge eines Segments zwischen Wegpunkt `i` und Wegpunkt `i+1` ergibt sich
 nach dem Satz des Pythagoras im dreidimensionalen Raum:
 
-```code
-L = sqrt(Δx² + Δy² + Δz²)
-```
+\begin{equation*}
+L = \sqrt{\Delta x^2 + \Delta y^2 + \Delta z^2}.
+\end{equation*}
 
-In Python verwenden wir `np.linalg.norm`, das den Betrag eines
+In Python verwenden wir die Funktion `np.linalg.norm`, die den Betrag eines
 Differenzvektors berechnet:
 
 ```{code-cell} python
-import numpy as np
-
-wegpunkte = np.array([
-    [0.00,  0.000, 0.00],
-    [0.20, -0.030, 0.00],
-    [0.40, -0.050, 0.02],
-    [0.60, -0.060, 0.04],
-    [0.80, -0.090, 0.03],
-    [1.00, -0.120, 0.01],
-])
-
 laengen = []
 for i in range(len(wegpunkte) - 1):
     delta  = wegpunkte[i+1] - wegpunkte[i]
@@ -122,32 +112,23 @@ print(f"\nGesamtlänge: {gesamtlaenge:.4f} m")
 ### Wie steil ist ein Segment?
 
 Der lokale Neigungswinkel beschreibt, wie stark die Bahn in einem Abschnitt
-ansteigt oder abfällt. Er ergibt sich aus dem Höhenunterschied `Δy` und der
-horizontalen Distanz `Δd = sqrt(Δx² + Δz²)`:
+ansteigt oder abfällt. Er ergibt sich aus dem Höhenunterschied $\Delta z$ und der
+horizontalen Distanz $\Delta d = \sqrt{\Delta x^2 + \Delta y^2}$:
 
-```code
-θ = arctan(Δy / Δd)
-```
+\begin{equation*}
+\theta = \arctan\left(\frac{\Delta z}{\Delta d}\right).
+\end{equation*}
 
 Ein negativer Winkel bedeutet ein Gefälle, ein positiver Winkel einen Anstieg.
 
 ```{code-cell} python
-import numpy as np
-
-wegpunkte = np.array([
-    [0.00,  0.000, 0.00],
-    [0.20, -0.030, 0.00],
-    [0.40, -0.050, 0.02],
-    [0.60, -0.060, 0.04],
-    [0.80, -0.090, 0.03],
-    [1.00, -0.120, 0.01],
-])
-
 winkel_grad = []
 for i in range(len(wegpunkte) - 1):
     delta       = wegpunkte[i+1] - wegpunkte[i]
-    delta_horiz = np.sqrt(delta[0]**2 + delta[2]**2)
-    theta_rad   = np.arctan2(delta[1], delta_horiz)
+    # horizontale Distanz in der x-y-Ebene
+    delta_horiz = np.sqrt(delta[0]**2 + delta[1]**2)
+    # z ist die Höhe
+    theta_rad   = np.arctan2(delta[2], delta_horiz)
     winkel_grad.append(np.degrees(theta_rad))
 
 print("Lokale Neigungswinkel (°):")
@@ -170,19 +151,20 @@ und prüfen Sie, ob Ihre Punktdefinition die gewünschten Winkel erzeugt.
 ```python
 import numpy as np
 
+# Gerade Bahn in x-Richtung, z = Höhe
 wegpunkte = np.array([
-    [0.00,  0.000, 0.00],
-    [0.20, -0.073, 0.00],   # ca. −20°
-    [0.40, -0.083, 0.00],   # ca. −3°
-    [0.60, -0.093, 0.00],
-    [0.80, -0.148, 0.00],   # ca. −15°
-    [1.00, -0.203, 0.00],
+    [0.00, 0.00,  0.000],
+    [0.20, 0.00, -0.073],  # ca. −20°
+    [0.40, 0.00, -0.083],  # ca. −3°
+    [0.60, 0.00, -0.094],  # ca. −3°
+    [0.80, 0.00, -0.148],  # ca. −15°
+    [1.00, 0.00, -0.201],  # ca. −15°
 ])
 
 for i in range(len(wegpunkte) - 1):
     delta       = wegpunkte[i+1] - wegpunkte[i]
-    delta_horiz = np.sqrt(delta[0]**2 + delta[2]**2)
-    theta       = np.degrees(np.arctan2(delta[1], delta_horiz))
+    delta_horiz = np.sqrt(delta[0]**2 + delta[1]**2)  # horizontale Distanz
+    theta       = np.degrees(np.arctan2(delta[2], delta_horiz))  # z = Höhe
     laenge      = np.linalg.norm(delta)
     print(f"Segment {i+1}: L = {laenge:.4f} m, θ = {theta:+.2f}°")
 ```
@@ -199,20 +181,20 @@ import numpy as np
 import plotly.graph_objects as go
 
 wegpunkte = np.array([
-    [0.00,  0.000, 0.00],
-    [0.20, -0.030, 0.00],
-    [0.40, -0.050, 0.02],
-    [0.60, -0.060, 0.04],
-    [0.80, -0.090, 0.03],
-    [1.00, -0.120, 0.01],
+    [0.00,  0.00,  0.00],
+    [0.20,  0.02, -0.03],
+    [0.40,  0.05, -0.06],
+    [0.60,  0.08, -0.08],
+    [0.80,  0.10, -0.11],
+    [1.00,  0.12, -0.14],
 ])
 
 fig = go.Figure()
 
 fig.add_trace(go.Scatter3d(
     x=wegpunkte[:, 0],
-    y=wegpunkte[:, 2],
-    z=wegpunkte[:, 1],
+    y=wegpunkte[:, 1],
+    z=wegpunkte[:, 2],
     mode='lines+markers',
     line=dict(color='royalblue', width=4),
     marker=dict(size=5, color='tomato'),
@@ -220,11 +202,11 @@ fig.add_trace(go.Scatter3d(
 ))
 
 fig.update_layout(
-    title='Kugelbahn – Wegpunkte und Segmente',
+    title='Kugelbahn: Wegpunkte und Segmente',
     scene=dict(
         xaxis_title='x (m)',
-        yaxis_title='z (m)',
-        zaxis_title='y – Höhe (m)',
+        yaxis_title='y (m)',
+        zaxis_title='z, d.h. Höhe (m)',
         aspectmode='data'
     )
 )
@@ -240,10 +222,9 @@ manuell entlang der Führungsrille aufzunehmen.
 ```{admonition} Schritt-für-Schritt: Wegpunkte in CloudCompare aufnehmen
 :class: note
 1. Das bereinigte Mesh in CloudCompare laden.
-2. Im Menü `Tools → Point picking` aktivieren (Tastenkürzel `Shift + P`).
+2. Im Menü `Tools → Point list picking` aktivieren.
 3. Mit der Maus nacheinander Punkte entlang der Mittellinie der
-   Führungsrille anklicken – etwa alle 5 cm einen Punkt, an Kurven
-   etwas dichter.
+   Führungsrille anklicken, an Kurven etwas dichter.
 4. Nach dem letzten Punkt auf "Export to ASCII" klicken.
 5. Als Trennzeichen Komma wählen, Spaltenreihenfolge: x, y, z.
 6. Datei als `wegpunkte_kugelbahn.csv` speichern.
@@ -255,17 +236,9 @@ manuell entlang der Führungsrille aufzunehmen.
 import numpy as np
 import pandas as pd
 
-# In der Praxis:
-# df = pd.read_csv("wegpunkte_kugelbahn.csv",
-#                  header=None, names=["x", "y", "z"])
-
-# Hier verwenden wir Beispieldaten:
-daten = {
-    "x": [0.00, 0.12, 0.25, 0.38, 0.51, 0.63, 0.76, 0.88, 1.00],
-    "y": [0.000, -0.020, -0.040, -0.055, -0.065, -0.080, -0.095, -0.110, -0.120],
-    "z": [0.000,  0.010,  0.020,  0.025,  0.030,  0.025,  0.015,  0.005,  0.000]
-}
-df        = pd.DataFrame(daten)
+df = pd.read_csv("wegpunkte_kugelbahn.csv", sep=r"\s+",
+    skiprows=1, names=["x", "y", "z"]
+)
 wegpunkte = df[["x", "y", "z"]].to_numpy()
 
 print(f"Wegpunkte eingelesen: {len(wegpunkte)}")
@@ -275,10 +248,24 @@ print(f"Letzte Zeile:         {wegpunkte[-1]}")
 
 ```{admonition} Mini-Übung
 :class: tip
-Laden Sie die Beispieldaten aus der Zelle oben und erstellen Sie ein
-Plotly-Balkendiagramm, das den lokalen Neigungswinkel jedes Segments darstellt.
-Färben Sie Segmente mit Gefälle (θ < 0) rot und Segmente mit Anstieg (θ ≥ 0)
-blau. Was fällt an der Verteilung der Winkel auf?
+Nehmen Sie die folgenden Beispieldaten
+
+| x          | y          | z          |
+|------------|------------|------------|
+| 0.08075079 | 0.03540741 | -0.04429221 |
+| 0.11615875 | 0.02852899 | -0.04392783 |
+| 0.16716073 | 0.02120220 | -0.04209511 |
+| 0.20815045 | 0.01721681 | -0.04486231 |
+| 0.23987089 | 0.01578052 | -0.04225944 |
+| 0.25288326 | 0.01645789 | -0.02781715 |
+| 0.25796390 | 0.01647832 | -0.01031585 |
+| 0.25636873 | 0.00546466 | 0.00567502  |
+
+und erstellen Sie ein Plotly-Balkendiagramm, das den lokalen Neigungswinkel
+jedes Segments darstellt. Färben Sie Segmente mit Gefälle (θ < 0) rot und
+Segmente mit Anstieg (θ ≥ 0) blau. Was fällt an der Verteilung der Winkel auf?
+
+Anmerkung: die Höhe geht in die y-Richtung.
 ```
 
 ````{admonition} Lösung
@@ -290,16 +277,19 @@ import pandas as pd
 import plotly.graph_objects as go
 
 daten = {
-    "x": [0.00, 0.12, 0.25, 0.38, 0.51, 0.63, 0.76, 0.88, 1.00],
-    "y": [0.000, -0.020, -0.040, -0.055, -0.065, -0.080, -0.095, -0.110, -0.120],
-    "z": [0.000,  0.010,  0.020,  0.025,  0.030,  0.025,  0.015,  0.005,  0.000]
+    "x": [0.08075079, 0.11615875, 0.16716073, 0.20815045,
+        0.23987089, 0.25288326, 0.25796390, 0.25636873],
+    "y": [0.03540741, 0.02852899, 0.02120220, 0.01721681,
+        0.01578052, 0.01645789, 0.01647832, 0.00546466],
+    "z": [-0.04429221, -0.04392783, -0.04209511, -0.04486231,
+        -0.04225944, -0.02781715, -0.01031585, 0.00567502]
 }
 wegpunkte = pd.DataFrame(daten)[["x", "y", "z"]].to_numpy()
 
 winkel = []
 for i in range(len(wegpunkte) - 1):
     delta       = wegpunkte[i+1] - wegpunkte[i]
-    delta_horiz = np.sqrt(delta[0]**2 + delta[2]**2)
+    delta_horiz = np.sqrt(delta[0]**2 + delta[0]**2)
     winkel.append(np.degrees(np.arctan2(delta[1], delta_horiz)))
 
 farben = ["tomato" if w < 0 else "steelblue" for w in winkel]
@@ -318,9 +308,8 @@ fig.update_layout(
 fig.show()
 ```
 
-Alle Segmente haben ein Gefälle (θ < 0), was plausibel ist: Die Kugelbahn
-verläuft insgesamt von oben nach unten. Die Winkel variieren zwischen etwa
-−8° und −12°, die Bahn ist also verhältnismäßig gleichmäßig geneigt.
+Die meisten Segmente haben ein Gefälle (θ < 0), was plausibel ist: Die Kugelbahn
+verläuft insgesamt von oben nach unten. Segment 5 und 6 sind horizontale Segmente.
 ````
 
 ## Die Schnittstelle zur Simulation
@@ -337,29 +326,34 @@ def bahn_aus_wegpunkten(wegpunkte):
     Berechnet Segmentlängen und lokale Neigungswinkel aus einer Wegpunktliste.
 
     Parameter:
-        wegpunkte : np.ndarray, Shape (N, 3) – Wegpunkte als (x, y, z) in Metern
+        wegpunkte : np.ndarray, Shape (N, 3) - Wegpunkte als (x, y, z) in Metern, z Höhe
 
     Rückgabe:
-        laengen    : np.ndarray, Shape (N-1,) – Segmentlängen in Metern
-        winkel_rad : np.ndarray, Shape (N-1,) – Neigungswinkel in Radiant
+        laengen    : np.ndarray, Shape (N-1,) - Segmentlängen in Metern
+        winkel_rad : np.ndarray, Shape (N-1,) - Neigungswinkel im Bogenmaß (Rad)
     """
     laengen    = []
     winkel_rad = []
     for i in range(len(wegpunkte) - 1):
         delta       = wegpunkte[i+1] - wegpunkte[i]
         laenge      = np.linalg.norm(delta)
-        delta_horiz = np.sqrt(delta[0]**2 + delta[2]**2)
-        theta       = np.arctan2(delta[1], delta_horiz)
+        delta_horiz = np.sqrt(delta[0]**2 + delta[1]**2)
+        theta       = np.arctan2(delta[2], delta_horiz)
         laengen.append(laenge)
         winkel_rad.append(theta)
     return np.array(laengen), np.array(winkel_rad)
 
 
 # Verwendung:
-wegpunkte          = np.array([
-    [0.00, 0.000, 0.00], [0.20, -0.030, 0.00],
-    [0.40, -0.050, 0.02], [0.60, -0.060, 0.04],
-    [0.80, -0.090, 0.03], [1.00, -0.120, 0.01],
+wegpunkte = np.array([
+    [0.08075079, 0.03540741, -0.04429221],
+    [0.11615875, 0.02852899, -0.04392783],
+    [0.16716073, 0.02120220, -0.04209511],
+    [0.20815045, 0.01721681, -0.04486231],
+    [0.23987089, 0.01578052, -0.04225944],
+    [0.25288326, 0.01645789, -0.02781715],
+    [0.25796390, 0.01647832, -0.01031585],
+    [0.25636873, 0.00546466,  0.00567502],
 ])
 laengen, winkel    = bahn_aus_wegpunkten(wegpunkte)
 
@@ -383,6 +377,6 @@ Die Funktion `bahn_aus_wegpunkten` kapselt die Berechnung und liefert die
 Schnittstelle zur Simulation.
 
 In Abschnitt 10.2 verlassen wir kurz die Simulation und schauen uns an, wie
-wir die Bewegung des echten Objekts messen – mit Stoppuhr und Maßband oder mit
-der Phyphox-App – und welche Gütemaße wir verwenden, um Simulation und Messung
+wir die Bewegung des echten Objekts messen (mit Stoppuhr und Maßband oder mit
+der Phyphox-App) und welche Gütemaße wir verwenden, um Simulation und Messung
 quantitativ zu vergleichen.

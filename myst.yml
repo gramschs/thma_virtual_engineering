@@ -74,10 +74,10 @@ project:
         - file: chapter10/chapter10_sec03.md
         - file: chapter10/chapter10_sec04.md    
         - file: chapter10/chapter10_sec05.md    
-#    - title: 11. Vom Workflow zum Bericht
-#      children:
-#        - file: chapter11/chapter11_sec01.md
-#        - file: chapter11/chapter11_sec02.md
+    - title: 11. Vom Workflow zum Bericht
+      children:
+        - file: chapter11/chapter11_sec01.md
+        - file: chapter11/chapter11_sec02.md
 #        - file: chapter11/chapter11_sec03.md    
 
     

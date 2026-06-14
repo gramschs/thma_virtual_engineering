@@ -6,31 +6,10 @@ kernelspec:
 
 # 11.1 Der vollständige Workflow im Rückblick
 
-Zehn Kapitel liegen hinter uns. Wir haben Fotos aufgenommen, ein Mesh
-rekonstruiert, es bereinigt, gedruckt, simuliert und mit Messungen verglichen.
-Jedes dieser Schritte hat ein Ergebnis erzeugt, das als Eingabe für den
-nächsten Schritt diente. In diesem Abschnitt treten wir zurück und schauen
-auf den gesamten Workflow als zusammenhängende Kette – nicht um alles zu
-wiederholen, sondern um die Verbindungen zwischen den Schritten sichtbar zu
-machen und zu prüfen, ob das eigene Projekt diese Kette vollständig
-durchlaufen hat.
-
-## Lernziele
-
-```{admonition} Lernziele
-:class: attention
-* [ ] Sie können den vollständigen Workflow des Kurses als geordnete Kette
-  von Eingaben und Ausgaben beschreiben.
-* [ ] Sie können für jeden Schritt benennen, welches Werkzeug eingesetzt
-  wurde, welche Datei als Eingabe diente und welche Datei als Ausgabe
-  entstanden ist.
-* [ ] Sie können die Konsistenz Ihrer eigenen Projektergebnisse anhand
-  einer Checkliste prüfen und fehlende oder inkonsistente Zwischenergebnisse
-  identifizieren.
-* [ ] Sie können den Begriff Digital Twin auf Ihr eigenes Projekt anwenden
-  und erklären, in welchem Sinne Ihre Simulation ein digitaler Zwilling
-  Ihres Objekts ist – und in welchem Sinne nicht.
-```
+Zum Abschluss dieser Vorlesung rekapitulieren wir den Workflow. Wir haben Fotos
+aufgenommen, ein Mesh rekonstruiert, es bereinigt, gedruckt, simuliert und mit
+Messungen verglichen. Jedes dieser Schritte hat ein Ergebnis erzeugt, das als
+Eingabe für den nächsten Schritt diente.
 
 ## Der Workflow als Kette
 
@@ -41,33 +20,29 @@ beschrieben:
 Fotos aufnehmen → Mesh erzeugen → bereinigen → drucken → simulieren → vergleichen
 ```
 
-Was damals wie eine Abfolge von Werkzeugbeschreibungen klang, ist jetzt ein
-gelebter Prozess, den wir selbst durchlaufen haben. Wir können diese Kette
-jetzt präziser beschreiben – mit konkreten Dateiformaten, konkreten Werkzeugen
-und konkreten Entscheidungen, die an jedem Übergang zu treffen waren.
+Es gibt zahlreiche Werkzeuge, mit Hilfe derer die einzelnen Schritt umgesetzt
+werden können. In dieser Vorlesung haben wir uns auf Open-Source-Software
+fokussiert.
 
 | Schritt | Kapitel | Werkzeug | Eingabe | Ausgabe |
 | ------- | ------- | -------- | ------- | ------- |
 | Fotoaufnahme | 2 | Smartphone / Kamera | Physisches Objekt | Fotoserie (.jpg) |
-| Mesh-Rekonstruktion | 2–3 | Meshroom | Fotoserie | Mesh (.obj + .mtl) |
-| Mesh-Bereinigung | 4 | CloudCompare | Mesh (.obj) | Bereinigtes Mesh (.ply) |
-| Registration | 5 | CloudCompare | Zwei Meshes | Registriertes Mesh (.ply) |
-| Abweichungsanalyse | 6 | CloudCompare + Python | Registriertes Mesh | Abweichungskarte + Kennzahlen |
-| Slicing | 7 | PrusaSlicer | Bereinigtes Mesh (.ply/.stl) | G-Code (.gcode) |
-| 3D-Druck | 7 | 3D-Drucker | G-Code | Physisches Druckobjekt |
-| Simulation (Einführung) | 8 | VPython / Trinket | Physikparameter | Animiertes 3D-Modell |
-| Simulation (Physik) | 9 | Python + VPython | Physikparameter + Geometrie | Trajektorie + Geschwindigkeitskurve |
-| Geometrie der Bahn | 10 | CloudCompare + Python | Bereinigtes Mesh | Wegpunkte (.csv) |
-| Vollständige Simulation | 10 | Python + VPython | Wegpunkte + Physikparameter | Rollzeit + Geschwindigkeitsverlauf |
+| Mesh-Rekonstruktion | 2/3 | Meshroom / Scaniverse | Fotoserie | Mesh (.obj + .mtl) |
+| Mesh-Bereinigung | 4 | CloudCompare | Mesh (.obj) | bereinigtes Mesh (.ply) |
+| Registrierung | 5 | CloudCompare | zwei Meshes | registriertes Mesh (.ply) |
+| Abweichungsanalyse | 6 | CloudCompare + Python | registriertes Mesh | Abweichungskarte + Kennzahlen |
+| Slicing | 7 | PrusaSlicer | bereinigtes Mesh (.ply/.stl) | G-Code (.gcode) |
+| 3D-Druck | 7 | 3D-Drucker | G-Code | physisches Druckobjekt |
+| Simulation (Einführung) | 8 | Ursina | Physikparameter | animiertes 3D-Modell |
+| Simulation (Physik) | 9 | Python + Ursina | Physikparameter + Geometrie | Trajektorie + Geschwindigkeitskurve |
+| Geometrie der Bahn | 10 | CloudCompare + Python | bereinigtes Mesh | Wegpunkte (.csv) |
+| Vollständige Simulation | 10 | Python + Ursina | Wegpunkte + Physikparameter | Rollzeit + Geschwindigkeitsverlauf |
 | Validierung | 10 | Python + Stoppuhr / Phyphox | Simulation + Messung | Gütemaße (MAE, RMSE) |
 | Visualisierung | 10 | Ursina | Mesh + Trajektorie | 3D-Animation |
 
 ## Was verbindet die Schritte?
 
-*Welche Übergänge in dieser Kette waren die kritischsten?*
-
-Rückblickend lassen sich drei Übergänge identifizieren, die den größten
-Einfluss auf das Endergebnis hatten.
+Drei Übergänge haben dabei den größten Einfluss auf das Endergebnis.
 
 ### Übergang 1: Fotos → Mesh
 
@@ -91,7 +66,7 @@ Das Vergleichen von Simulation und Messung ist mehr als das Berechnen einer
 prozentualen Abweichung. Es erfordert eine Entscheidung: Liegt die Abweichung
 im akzeptablen Bereich? Was ist der Zweck der Simulation, und welche
 Genauigkeit ist dafür nötig? Diese Entscheidung ist nicht technisch, sondern
-ingenieurwissenschaftlich – und sie gehört in den Bericht.
+ingenieurwissenschaftlich.
 
 ## Der Digital Twin: Was haben wir wirklich gebaut?
 
@@ -102,90 +77,73 @@ gebaut?
 
 Ja und nein. Wir haben ein geometrisch korrektes digitales Modell des Objekts
 erzeugt (Meshroom + CloudCompare), und wir haben das Verhalten dieses Objekts
-unter bestimmten Bedingungen simuliert (VPython + Python). Das sind die
+unter bestimmten Bedingungen simuliert (Python). Das sind die
 Kernbestandteile eines digitalen Zwillings.
 
 Was fehlt, ist die **bidirektionale Verknüpfung**: Ein vollständiger digitaler
 Zwilling würde in Echtzeit Sensordaten vom physischen Objekt empfangen und
 seinen Zustand automatisch aktualisieren. Das ist in industriellen Anwendungen
-Standard, war aber nicht Teil unseres Kursprojekts – und auch nicht nötig, um
-das Konzept zu verstehen.
+Standard, war aber nicht Teil dieser Vorlesung.
 
 *Was hätten wir brauchen, um den nächsten Schritt zu gehen?*
 
 Eine kontinuierliche Kopplung würde einen Sensor am physischen Objekt
 erfordern (zum Beispiel einen Beschleunigungsmesser wie Phyphox) sowie eine
 Schnittstelle, die die Sensordaten in Echtzeit in die Simulation einspeist.
-Das ist technisch möglich – und ein mögliches Ziel für eine Folgearbeit.
 
-## Konsistenzcheck: Wo stehen Sie mit Ihrem Projekt?
+## Checkliste für das Kugelbahn-Projekt
 
-Bevor wir zur kritischen Reflexion in Abschnitt 11.2 übergehen, lohnt es sich,
-die eigenen Ergebnisse anhand der folgenden Checkliste zu prüfen.
+Die folgende Checkliste dokumentiert das Kugelbahn-Projekt.
 
-```{admonition} Checkliste: Projektergebnisse
-:class: attention
-**Digitalisierung (Kapitel 2–3)**
+**Digitalisierung**
+
 * [ ] Fotoserie aufgenommen (mindestens 60 Fotos, gute Abdeckung).
 * [ ] Meshroom-Rekonstruktion erfolgreich abgeschlossen.
 * [ ] Mesh exportiert (.obj oder .ply), Vertices- und Faces-Zahl dokumentiert.
 
-**Bereinigung und Analyse (Kapitel 4–6)**
+**Bereinigung und Analyse**
+
 * [ ] Hintergrundgeometrie entfernt, Ausreißer gefiltert, Mesh geglättet.
 * [ ] Abweichungsanalyse zwischen zwei Scans durchgeführt.
 * [ ] Mittelwert, Standardabweichung und Maximalabweichung dokumentiert.
 
-**3D-Druck (Kapitel 7)**
+**3D-Druck**
+
 * [ ] Slicer-Parameter dokumentiert (Schichthöhe, Fülldichte, Stützstrukturen).
 * [ ] G-Code erzeugt, Druckzeit und Materialverbrauch notiert.
 * [ ] Druckobjekt vorhanden (oder Musterdatensatz verwendet).
 
-**Simulation (Kapitel 8–10)**
-* [ ] VPython-Szene mit animierter Kugel vorhanden.
+**Simulation**
+
+* [ ] Animation mit Python (Ursinal) umgesetzt.
 * [ ] Physikmodell mit Haft- und Gleitreibung implementiert.
 * [ ] Wegpunkte aus CloudCompare extrahiert und als CSV gespeichert.
 * [ ] Segmentweise Simulation mit variabler Neigung durchgeführt.
 * [ ] Rollzeit und Endgeschwindigkeit dokumentiert.
 
-**Validierung (Kapitel 10)**
+**Validierung**
+
 * [ ] Mindestens fünf Rollzeitmessungen durchgeführt.
 * [ ] Mittelwert und Standardabweichung der Messung berechnet.
 * [ ] Relative Abweichung zwischen Simulation und Messung berechnet.
 * [ ] Dominante Fehlerquelle identifiziert und begründet.
 
 **Bericht**
-* [ ] Alle Übungsergebnisse kontinuierlich dokumentiert.
+
+* [ ] Alle Ergebnisse kontinuierlich dokumentiert.
 * [ ] Methodik für jeden Schritt nachvollziehbar beschrieben.
 * [ ] Ergebnisse mit Zahlen belegt (keine reinen Beschreibungen).
 * [ ] Diskussion enthält eine begründete Bewertung der Simulationsqualität.
-```
 
-```{admonition} Mini-Übung
-:class: tip
-Gehen Sie die Checkliste durch und markieren Sie jeden Punkt mit einem
-der folgenden Status:
-
-- ✓ Erledigt und dokumentiert
-- ~ Erledigt, aber noch nicht vollständig dokumentiert
-- ✗ Fehlt noch
-
-Priorisieren Sie die offenen Punkte nach ihrer Relevanz für die Bewertung
-des Berichts und schätzen Sie den verbleibenden Aufwand in Stunden.
-```
-
-````{admonition} Hinweis zur Priorisierung
-:class: tip
-:class: dropdown
 Die Punkte mit dem größten Einfluss auf die Berichtsqualität sind typischerweise:
 
 1. **Validierung mit Zahlen:** Eine Abweichungsanalyse ohne konkrete Gütemaße
    (MAE, RMSE, relative Abweichung) ist schwach begründet.
-2. **Diskussion der Fehlerquellen:** Eine Abweichung zu benennen reicht nicht –
-   sie muss begründet werden. Welche Modellannahme ist dafür verantwortlich?
+2. **Diskussion der Fehlerquellen:** Eine Abweichung zu benennen reicht nicht.
+   Sie muss begründet werden. Welche Modellannahme ist dafür verantwortlich?
 3. **Konsistenz der Parameter:** Werden in Simulation und Messung dieselben
    Größen verglichen (zum Beispiel immer Rollzeit, nie einmal Rollzeit und
    einmal Endgeschwindigkeit)?
-````
 
 ## Zusammenfassung und Ausblick
 

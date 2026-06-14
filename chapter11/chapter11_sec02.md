@@ -6,29 +6,13 @@ kernelspec:
 
 # 11.2 Simulation vs. Experiment: Was stimmt, was weicht ab?
 
-Unsere Simulation liefert eine Rollzeit. Die Stoppuhr liefert eine andere.
-Die Abweichung ist vielleicht 5 %, vielleicht 12 %. Was sagt uns das? Ist das
-Modell schlecht, oder ist die Messung unzuverlässig? Haben wir den falschen
+Unsere Simulation liefert eine Rollzeit. Die Stoppuhr liefert eine andere. Die
+Abweichung ist vielleicht 5 %, vielleicht 12 %. Was sagt uns das? Ist das Modell
+schlecht, oder ist die Messung unzuverlässig? Haben wir den falschen
 Reibungskoeffizienten gewählt, oder ist das Physikmodell grundsätzlich
-unvollständig? Diese Fragen sind keine Zeichen des Scheiterns – sie sind
-der eigentliche wissenschaftliche Gehalt des Projekts. Wer sie präzise
-beantwortet, schreibt einen guten Diskussionsteil. Wer sie übergeht, verschenkt
-den wichtigsten Teil der Arbeit.
-
-## Lernziele
-
-```{admonition} Lernziele
-:class: attention
-* [ ] Sie können die Abweichung zwischen Simulation und Experiment einer
-  der drei Fehlerquellen (Modellfehler, Parameterfehler, Messfehler)
-  zuordnen und die Zuordnung begründen.
-* [ ] Sie können erklären, welche Modellannahmen in unserer Simulation
-  die größten systematischen Fehler verursachen.
-* [ ] Sie können den Unterschied zwischen systematischem und zufälligem
-  Fehler beschreiben und Beispiele aus dem eigenen Projekt benennen.
-* [ ] Sie können eine Abweichung in einem Bericht wissenschaftlich korrekt
-  formulieren: mit Zahlenwert, Einheit, Vorzeichen und begründeter Ursache.
-```
+unvollständig? Diese Fragen sind keine Zeichen des Scheiterns. Sie sind der
+eigentliche wissenschaftliche Gehalt eines Virtual and Reverse Engineering
+Projekts.
 
 ## Warum stimmt keine Simulation exakt mit der Realität überein?
 
@@ -40,13 +24,13 @@ sondern "Ist das Modell für den vorgesehenen Zweck gut genug?"
 
 *Was ist der vorgesehene Zweck unserer Simulation?*
 
-In unserem Fall: das qualitative Verstehen der Rollbewegung und die
-quantitative Vorhersage der Rollzeit mit einer Genauigkeit, die für eine
-erste Auslegung ausreicht. Für einen Präzisionsmechanismus wäre 5 %
-Abweichung inakzeptabel. Für ein Lehrprojekt mit Smartphone-Fotogrammetrie
-und Stoppuhrmessung ist es ein gutes Ergebnis.
+In dem Fall Kugelbahn: das qualitative Verstehen der Rollbewegung und die
+quantitative Vorhersage der Rollzeit mit einer Genauigkeit, die für eine erste
+Auslegung ausreicht. Für einen Präzisionsmechanismus wäre 5 % Abweichung
+inakzeptabel. Für ein erstes Lernprojekt mit Smartphone-Fotogrammetrie und
+Stoppuhrmessung ist es ein gutes Ergebnis.
 
-## Fehlerquellen: Eine präzise Sprache
+## Fehlerquellen
 
 In Kapitel 10 haben wir Fehlerquellen in drei Kategorien eingeteilt. Hier
 vertiefen wir diese Klassifikation und unterscheiden zusätzlich zwischen
@@ -59,45 +43,18 @@ verschiebt das Ergebnis immer in dieselbe Richtung. Wenn unsere Simulation
 die Rollzeit in acht von acht Versuchen unterschätzt, liegt ein systematischer
 Fehler vor. Die häufigsten Ursachen in unserem Modell sind:
 
-**Vernachlässigte Rotationsenergie:** Wir haben die Kugel als Punktmasse
-behandelt. Eine rollende Kugel speichert jedoch einen Teil ihrer Energie
-als Rotationsenergie. Für eine solide Vollkugel beträgt dieser Anteil
-genau 2/7 der kinetischen Gesamtenergie. Das bedeutet: Die Kugel beschleunigt
-langsamer als unser Modell vorhersagt, und die reale Rollzeit ist länger.
-Unsere Simulation unterschätzt die Rollzeit systematisch um diesen Betrag.
-
-```{code-cell} python
-import math
-
-# Vergleich: Punktmasse vs. rollende Vollkugel
-# Für eine schiefe Ebene (keine Reibung) gilt:
-# Punktmasse:    a = g · sin(θ)
-# Vollkugel:     a = (5/7) · g · sin(θ)
-
-G     = 9.81
-THETA = math.radians(15)
-s     = 1.0   # Bahnlänge
-
-a_punkt  = G * math.sin(THETA)
-a_kugel  = (5/7) * G * math.sin(THETA)
-
-t_punkt  = math.sqrt(2 * s / a_punkt)
-t_kugel  = math.sqrt(2 * s / a_kugel)
-
-print(f"Beschleunigung Punktmasse:   {a_punkt:.4f} m/s²")
-print(f"Beschleunigung Vollkugel:    {a_kugel:.4f} m/s²")
-print(f"Rollzeit Punktmasse:         {t_punkt:.4f} s")
-print(f"Rollzeit Vollkugel:          {t_kugel:.4f} s")
-print(f"Systematische Unterschätzung: {(t_kugel - t_punkt)/t_kugel*100:.1f} %")
-```
-
-**Konstanter Reibungskoeffizient:** Wir haben μ_G über die gesamte Bahn
-als konstant angenommen. In der Realität variiert er mit der lokalen
-Oberflächenbeschaffenheit, der Geschwindigkeit und der Temperatur. An
-Stellen mit höherer Rauheit ist er größer, an geschmierteren Stellen kleiner.
-
-**Vereinfachte Geometrie:** Die stückweise lineare Approximation der Bahn
-aus Wegpunkten ist eine Näherung. Kurven und gleichmäßige Übergänge zwischen
+- **Vernachlässigte Rotationsenergie:** Wir haben die Kugel als Punktmasse
+behandelt. Eine rollende Kugel speichert jedoch einen Teil ihrer Energie als
+Rotationsenergie. Für eine solide Vollkugel beträgt dieser Anteil genau 2/7 der
+kinetischen Gesamtenergie. Das bedeutet: Die Kugel beschleunigt langsamer als
+unser Modell vorhersagt, und die reale Rollzeit ist länger. Unsere Simulation
+unterschätzt die Rollzeit systematisch um diesen Betrag.
+- **Konstanter Reibungskoeffizient:** Wir haben μ_G über die gesamte Bahn als
+konstant angenommen. In der Realität variiert er mit der lokalen
+Oberflächenbeschaffenheit, der Geschwindigkeit und der Temperatur. An Stellen
+mit höherer Rauheit ist er größer, an geschmierteren Stellen kleiner.
+- **Vereinfachte Geometrie:** Die stückweise lineare Approximation der Bahn aus
+Wegpunkten ist eine Näherung. Kurven und gleichmäßige Übergänge zwischen
 Segmenten werden dabei auf Knicke reduziert.
 
 ### Zufällige Fehler
@@ -106,9 +63,10 @@ Ein **zufälliger Fehler** (englisch: *random error*) streut das Ergebnis
 um einen Mittelwert ohne systematische Richtung. In unserem Projekt entstehen
 zufällige Fehler hauptsächlich durch:
 
-Die Reaktionszeit beim Starten und Stoppen der Stoppuhr (typisch ±0.15 s),
-leicht unterschiedliche Startbedingungen von Messung zu Messung (Kugel nicht
-immer exakt an derselben Position) und Rauschen im Phyphox-Beschleunigungssignal.
+- die Reaktionszeit beim Starten und Stoppen der Stoppuhr (typisch ±0.15 s),
+- leicht unterschiedliche Startbedingungen von Messung zu Messung (Kugel nicht
+  immer exakt an derselben Position) und
+- Rauschen im Phyphox-Beschleunigungssignal.
 
 Zufällige Fehler lassen sich durch Wiederholung reduzieren (Mittelwertbildung),
 systematische Fehler nicht. Eine systematische Abweichung bleibt auch dann
@@ -133,13 +91,13 @@ zufällig und begründen Sie Ihre Antwort jeweils in einem Satz:
 ````{admonition} Lösung
 :class: tip
 :class: dropdown
-1. **Systematisch.** Der Tabellenwert passt nicht exakt zum Material –
+1. **Systematisch.** Der Tabellenwert passt nicht exakt zum Material, d.h.
    der Fehler tritt immer in dieselbe Richtung auf (entweder zu groß oder
    zu klein), ohne sich zu mitteln.
 2. **Systematisch.** Eine konstante Reaktionsverzögerung verschiebt alle
    Messungen in dieselbe Richtung (zu kurze gemessene Zeit).
 3. **Zufällig.** Die Abweichung der Wegpunkte streut um die Mittellinie
-   ohne systematische Richtung – mal zu weit links, mal zu weit rechts.
+   ohne systematische Richtung, d.h. mal zu weit links, mal zu weit rechts.
 4. **Systematisch und zufällig.** Die Ableseungenauigkeit von 0.5° erzeugt
    einen zufälligen Fehler (je nach Ablesemoment). Wenn der Winkelmesser
    jedoch grundsätzlich falsch kalibriert ist, kommt ein systematischer
@@ -156,7 +114,7 @@ t_kugel = t_punkt · sqrt(7/5)
 ```
 
 Das ergibt einen systematischen Faktor von `sqrt(1.4) ≈ 1.183`. Unsere
-Simulation unterschätzt die Rollzeit also um etwa 18 % – unabhängig von
+Simulation unterschätzt die Rollzeit also um etwa 18 % und das unabhängig von
 Neigungswinkel, Reibung und Bahnlänge.
 
 ```{code-cell} python
@@ -174,8 +132,8 @@ print(f"ist die reale Rollzeit ca. {1.30 * faktor:.2f} s.")
 
 *Warum haben wir diesen Effekt dann nicht von Anfang an berücksichtigt?*
 
-Weil das Trägheitsmoment der Kugel vom Radius und der Massenverteilung
-abhängt – Größen, die bei beliebigen Objekten (Kurbel, Zahnrad, Holzeisenbahn)
+Weil das Trägheitsmoment der Kugel vom Radius und der Massenverteilung abhängt.
+Das sind Größen, die bei beliebigen Objekten (Kurbel, Zahnrad, Holzeisenbahn)
 nicht einfach vorausgesagt werden können. Die Punktmassenannahme ist ein
 pragmatischer Kompromiss, der für einen ersten Überblick ausreicht und im
 Bericht explizit benannt werden muss.
@@ -224,45 +182,36 @@ Schreiben Sie für Ihr eigenes Projekt einen Diskussionsabsatz auf dem
   warum.
 ```
 
-````{admonition} Formulierungshilfen
-:class: tip
-:class: dropdown
 Nützliche Satzbausteine für den Diskussionsteil:
 
 **Abweichung benennen:**
+
 - "Die simulierte [Größe] liegt um [X] % [über/unter] dem Messwert."
 - "Die relative Abweichung beträgt [+/−X] %, wobei das negative Vorzeichen
   eine Unterschätzung durch die Simulation anzeigt."
 
 **Ursache begründen:**
+
 - "Dies ist auf die Vernachlässigung von [...] zurückzuführen."
 - "Da [...] in unserem Modell nicht berücksichtigt wurde, [Folge]."
 - "Der verwendete Literaturwert für [...] weicht wahrscheinlich vom
   tatsächlichen Wert ab, weil [...]."
 
 **Größenordnung quantifizieren:**
+
 - "Der theoretische Beitrag dieses Effekts beträgt [X] %."
 - "Eine Variation von [...] um ±[X] führt zu einer Änderung der Rollzeit
   um ±[Y] s."
 
 **Einordnung:**
+
 - "Für den Zweck [Beschreibung] ist diese Abweichung [akzeptabel/nicht
   akzeptabel], weil [Begründung]."
 - "Im Vergleich zu industriellen Anforderungen ([Toleranz]) ist das Modell
   [zu ungenau / ausreichend]."
-````
 
 ## Zusammenfassung und Ausblick
 
 In diesem Abschnitt haben wir die Abweichung zwischen Simulation und Experiment
 auf drei Ebenen analysiert: systematisch vs. zufällig, quantifizierbar vs.
-abschätzbar, und in ihrer Bedeutung für die Berichtqualität. Die
-Punktmassenannahme verursacht einen systematischen Fehler von etwa 18 %, der
-durch den Korrekturfaktor √(7/5) analytisch bestimmbar ist. Reibungskoeffizienten
-aus der Literatur weichen typischerweise um ±25 % vom realen Wert ab und
-dominieren bei kleinen Neigungswinkeln. Zufällige Fehler aus der Stoppuhrmessung
-lassen sich durch Mittelwertbildung auf unter 1 % reduzieren.
-
-Im nächsten Abschnitt setzen wir diese Erkenntnisse in konkrete Schreibübungen
-um: Wir formulieren Methodenabschnitte, Ergebnisabschnitte und
-Diskussionsabschnitte auf dem Niveau, das eine gute Projektarbeit auszeichnet.
+abschätzbar, und in ihrer Bedeutung für die Berichtqualität.

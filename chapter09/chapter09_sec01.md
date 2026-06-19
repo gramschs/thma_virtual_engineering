@@ -302,11 +302,10 @@ gegebenen Parameter, den wir aus Tabellen oder Messungen entnehmen.
 ```{admonition} Welchen Pfad wähle ich für mein Objekt?
 :class: note
 **Translatorischer Pfad:** Das Objekt bewegt sich geradlinig oder entlang
-einer Kurve. Typische Objekte: rollende Kugel, Schwerlastrolle,
-Holzeisenbahn auf einem Gleis.
+einer Kurve. Typische Objekte: rollende Kugel, Holzeisenbahn auf einem Gleis.
 
 **Rotatorischer Pfad:** Das Objekt dreht sich um eine feste Achse. Typische
-Objekte: Fahrradkurbel, Zahnrad, Pendel.
+Objekte: Fahrradkurbel, Zahnrad, Pendel, Schwerlastrolle.
 
 Manche Objekte kombinieren beide: Eine Rolle rollt (Translation des
 Mittelpunkts und Rotation um die Achse). Für Kapitel 9 vereinfachen wir
